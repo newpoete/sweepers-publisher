@@ -13,9 +13,9 @@ module Sweepers
   # Only leaves due on or before the release date (UTC) are written anywhere.
   # See docs/data-contract.md for every file this produces.
   class Release
-    class InvalidQueue < StandardError; end
+    class InvalidLeaf < StandardError; end
 
-    QUEUE_VERSION = 1
+    LEAF_VERSION = 1
     SELECTION_DAYS = 90
     SELECTION_LIMIT = 7
     SELECTION_MIN_SCORE = 8
@@ -29,12 +29,17 @@ module Sweepers
       end
     end
 
+    # A current selection: the leaf, and the date it's listed under (the most
+    # recent occurrence of its day of year before the release date).
+    Selection = Struct.new(:leaf, :date, :days_ago, keyword_init: true)
+
     attr_reader :date, :base_url
 
-    def initialize(queue, date:, base_url: DEFAULT_BASE_URL)
+    # leaves: the decrypted queue, an array of leaf hashes (see Sweepers::Queue).
+    def initialize(leaves, date:, base_url: DEFAULT_BASE_URL)
       @date = date
       @base_url = base_url.chomp('/')
-      @leaves = parse(queue)
+      @leaves = leaves.map { |raw| parse_leaf(raw) }
     end
 
     # Leaves due by the release date: the only ones that may leave this class.
@@ -43,25 +48,27 @@ module Sweepers
     end
 
     # The newest due leaf for each day of year, as Flask's Leaf.by_day_of_year
-    # chose it: the latest year, then the latest publish.
+    # chose it: the latest year, then the latest publish. A day keeps showing
+    # an old year's leaf indefinitely until a newer one is published and due.
     def leaves_by_day
       @leaves_by_day ||= due_leaves.group_by(&:day_of_year).transform_values do |leaves|
         leaves.max_by { |leaf| [leaf.year, leaf.published_at] }
       end
     end
 
-    # Flask's Leaf.selections: leaves from the last 90 days (not today) scoring
-    # 8 or more; the 7 best by score (newer first on ties), shown newest first.
-    #
-    # One intended difference: the window is measured on real dates. Flask
-    # matched on day of year alone, so a past year's leaf could slip into it.
+    # Flask's Leaf.selections. For each of the 90 days before the release date
+    # (today excluded), take that day of year's current leaf, from any year,
+    # as Flask's day-of-year window did. Keep scores of 8 or more, then the 7
+    # best by score (newer first on ties), listed newest first.
     def selections
       @selections ||= begin
-        recent = leaves_by_day.values.select do |leaf|
-          (1..SELECTION_DAYS).cover?((date - leaf.date).to_i) && leaf.score.to_i >= SELECTION_MIN_SCORE
+        recent = (1..SELECTION_DAYS).filter_map do |days_ago|
+          day = date - days_ago
+          leaf = leaves_by_day[Calendar.day_of_year(day)]
+          Selection.new(leaf: leaf, date: day, days_ago: days_ago) if leaf && leaf.score.to_i >= SELECTION_MIN_SCORE
         end
-        best = recent.sort_by { |leaf| [-leaf.score, date - leaf.date] }.first(SELECTION_LIMIT)
-        best.sort_by { |leaf| date - leaf.date }
+        best = recent.sort_by { |s| [-s.leaf.score, s.days_ago] }.first(SELECTION_LIMIT)
+        best.sort_by(&:days_ago)
       end
     end
 
@@ -69,7 +76,7 @@ module Sweepers
     def files
       files = {
         'release.json' => json(release_record),
-        'selections.json' => json(selections.map { |leaf| selection_record(leaf) })
+        'selections.json' => json(selections.map { |selection| selection_record(selection) })
       }
       leaves_by_day.each_value do |leaf|
         files["leaves/#{leaf.day_of_year}.json"] = json(leaf_record(leaf))
@@ -95,9 +102,9 @@ module Sweepers
         File.write(target, content)
       end
       selection_shell = File.join(site_dir, 'selection.html')
-      selections.each do |leaf|
+      selections.each do |selection|
         FileUtils.mkdir_p(File.join(staging, 'selection'))
-        FileUtils.cp(selection_shell, File.join(staging, 'selection', "#{leaf.day_of_year}.html"))
+        FileUtils.cp(selection_shell, File.join(staging, 'selection', "#{selection.leaf.day_of_year}.html"))
       end
       File.rename(staging, out_dir)
     end
@@ -127,20 +134,23 @@ module Sweepers
       }
     end
 
+    # Pages show a leaf under the release's date, whatever year it was
+    # published for (as Flask did with the current year), so no year is released.
     def leaf_record(leaf)
-      { day_of_year: leaf.day_of_year, year: leaf.year, html: leaf.html }
+      { day_of_year: leaf.day_of_year, html: leaf.html }
     end
 
-    def selection_record(leaf)
+    def selection_record(selection)
+      leaf = selection.leaf
       {
         day_of_year: leaf.day_of_year,
-        date: leaf.date.iso8601,
+        date: selection.date.iso8601,
         snippet: leaf.snippet.to_s.strip.empty? ? self.class.snippet(leaf.html) : leaf.snippet
       }
     end
 
     def sitemap
-      paths = %w[today yesterday selections] + selections.map { |leaf| "selection/#{leaf.day_of_year}" }
+      paths = %w[today yesterday selections] + selections.map { |s| "selection/#{s.leaf.day_of_year}" }
       paths.map { |path| "#{base_url}/#{path}\n" }.join
     end
 
@@ -148,26 +158,21 @@ module Sweepers
       "#{JSON.pretty_generate(data)}\n"
     end
 
-    def parse(queue)
-      raise InvalidQueue, "unsupported queue version: #{queue['version'].inspect}" unless queue['version'] == QUEUE_VERSION
-      raise InvalidQueue, 'queue has no leaves array' unless queue['leaves'].is_a?(Array)
+    def parse_leaf(raw)
+      where = raw['source'] || 'leaf'
+      raise InvalidLeaf, "#{where}: unsupported version #{raw['version'].inspect}" unless raw['version'] == LEAF_VERSION
 
-      queue['leaves'].each_with_index.map { |raw, i| parse_leaf(raw, i) }
-    end
-
-    def parse_leaf(raw, index)
-      where = "leaf #{index}"
-      int = ->(key) { raw[key].is_a?(Integer) ? raw[key] : raise(InvalidQueue, "#{where}: #{key} must be an integer") }
+      int = ->(key) { raw[key].is_a?(Integer) ? raw[key] : raise(InvalidLeaf, "#{where}: #{key} must be an integer") }
       day = int.call('day_of_year')
-      raise InvalidQueue, "#{where}: day_of_year #{day} is outside 1-366" unless (1..366).cover?(day)
-      raise InvalidQueue, "#{where}: html must be a non-empty string" unless raw['html'].is_a?(String) && !raw['html'].empty?
-      raise InvalidQueue, "#{where}: score must be an integer or null" unless raw['score'].nil? || raw['score'].is_a?(Integer)
+      raise InvalidLeaf, "#{where}: day_of_year #{day} is outside 1-366" unless (1..366).cover?(day)
+      raise InvalidLeaf, "#{where}: html must be a non-empty string" unless raw['html'].is_a?(String) && !raw['html'].empty?
+      raise InvalidLeaf, "#{where}: score must be an integer or null" unless raw['score'].nil? || raw['score'].is_a?(Integer)
 
       Leaf.new(aphorism_id: int.call('aphorism_id'), draft_id: int.call('draft_id'), year: int.call('year'),
                day_of_year: day, html: raw['html'], snippet: raw['snippet'], score: raw['score'],
                published_at: Time.iso8601(raw.fetch('published_at')))
     rescue KeyError, ArgumentError => e
-      raise InvalidQueue, "#{where}: #{e.message}"
+      raise InvalidLeaf, "#{where}: #{e.message}"
     end
   end
 end

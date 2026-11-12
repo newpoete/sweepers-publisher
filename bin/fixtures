@@ -1,33 +1,39 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Regenerates the encrypted fixture queue, test/fixtures/queue.age.
+# Regenerates the encrypted fixture queue in spec/fixtures/queue/.
 #
 #   bin/fixtures
 #
-# Contents (see docs/data-contract.md, "Fixtures"):
-# - a synthetic leaf for every day of 2025 and 2026, and for January 2027 (future);
-# - the leaves already public on the live site on 2026-11-12, taken from the
-#   parity snapshot (test/fixtures/parity-leaves.json), replacing the 2026
-#   synthetic leaves for their days;
-# - high scores only on 2025 synthetic leaves, so a release for 2026-11-12
-#   reproduces the live site's selections exactly.
+# It models the real situation: nothing new has been published for years, so
+# every day is served by an old leaf (Flask's fallback). It contains:
+# - a synthetic 2019 leaf for every day of the year (scores 0-7);
+# - the leaves the live site showed on 2026-11-12 (today, yesterday and the 7
+#   selections), from the parity snapshot, as 2019 leaves replacing the
+#   synthetic ones for their days. They were already public;
+# - one recent leaf (2026, day 310) and future leaves (2026 days 318-330,
+#   January 2027), which must stay unreleased until their day.
+# Only the parity selections score 8 or more, so a release for 2026-11-12
+# reproduces the live site's selections exactly.
 #
-# It's encrypted to the fixture recipient. The fixture identity is committed on
-# purpose: it protects nothing and lets anyone run a release locally.
+# Every file is encrypted to the fixture recipient. The fixture identity is
+# committed on purpose: it protects nothing and lets anyone run a release.
 
 require 'date'
+require 'fileutils'
 require 'json'
 require 'time'
 require_relative '../lib/sweepers/calendar'
-require_relative '../lib/sweepers/crypto'
+require_relative '../lib/sweepers/queue'
 
 root = File.expand_path('..', __dir__)
-fixtures = File.join(root, 'test', 'fixtures')
+fixtures = File.join(root, 'spec', 'fixtures')
+queue_dir = File.join(fixtures, 'queue')
 
 def leaf(year, day, html:, score:)
   date = Sweepers::Calendar.leaf_date(year, day)
   {
+    version: 1,
     aphorism_id: (year * 1000) + day,
     draft_id: (year * 1000) + day,
     year: year,
@@ -35,27 +41,27 @@ def leaf(year, day, html:, score:)
     html: html,
     snippet: nil,
     score: score,
-    published_at: Time.utc(date.year, date.month, date.day, 12).-(30 * 86_400).iso8601
+    published_at: (Time.utc(date.year, date.month, date.day, 12) - (30 * 86_400)).iso8601
   }
 end
 
 def synthetic(year, day, score)
   date = Sweepers::Calendar.leaf_date(year, day)
-  leaf(year, day, score: score,
-                  html: "<p>Fixture leaf for #{date.strftime('%-d %B')} #{year} (day #{day}).</p>\n")
+  leaf(year, day, score: score, html: "<p>Fixture leaf for #{date.strftime('%-d %B')} #{year} (day #{day}).</p>\n")
 end
 
 leaves = {}
-(1..366).each { |day| leaves[[2025, day]] = synthetic(2025, day, day % 10 == 0 ? 9 : day % 8) }
-(1..366).each { |day| leaves[[2026, day]] = synthetic(2026, day, day % 8) }
-(1..31).each { |day| leaves[[2027, day]] = synthetic(2027, day, day % 8) }
-
+(1..366).each { |day| leaves[[2019, day]] = synthetic(2019, day, day % 8) }
 parity = JSON.parse(File.read(File.join(fixtures, 'parity-leaves.json')))
 parity['leaves'].each do |p|
-  leaves[[parity['year'], p['day_of_year']]] = leaf(parity['year'], p['day_of_year'], html: p['html'], score: p['score'])
+  leaves[[2019, p['day_of_year']]] = leaf(2019, p['day_of_year'], html: p['html'], score: p['score'])
 end
+leaves[[2026, 310]] = synthetic(2026, 310, 5)
+(318..330).each { |day| leaves[[2026, day]] = synthetic(2026, day, 9) }
+(1..31).each { |day| leaves[[2027, day]] = synthetic(2027, day, 9) }
 
-queue = { version: 1, generated_at: Time.now.utc.iso8601, leaves: leaves.values }
-ciphertext = Sweepers::Crypto.encrypt(JSON.generate(queue), File.join(fixtures, 'fixture-recipient.txt'))
-File.write(File.join(fixtures, 'queue.age'), ciphertext)
-puts "Wrote test/fixtures/queue.age: #{leaves.size} leaves"
+FileUtils.rm_rf(queue_dir)
+FileUtils.mkdir_p(queue_dir)
+recipients = File.join(fixtures, 'fixture-recipient.txt')
+leaves.each_value { |l| Sweepers::Queue.add(l, queue_dir, recipients) }
+puts "Wrote #{leaves.size} leaves to spec/fixtures/queue/"

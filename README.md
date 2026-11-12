@@ -9,7 +9,7 @@ This repo holds no editorial state. [Sweepers Editor](https://github.com/newpoet
 ## How it works
 
 ```
-Sweepers Editor ──(age-encrypted queue, committed here)──▶ sweepers-publisher
+Sweepers Editor ──(one age-encrypted file per leaf, committed here)──▶ sweepers-publisher
                                                                 │
                               daily GitHub Action, just after 00:00 UTC
                                                                 │
@@ -18,7 +18,7 @@ Sweepers Editor ──(age-encrypted queue, committed here)──▶ sweepers-pu
                                          GitHub Pages ◀── static HTML + JS
 ```
 
-1. **The editor publishes** by committing an encrypted queue of leaves. It encrypts to an [age](https://age-encryption.org) public key, so it can't decrypt the queue itself.
+1. **The editor publishes** by committing each leaf as its own encrypted file in `data/queue/`. It encrypts to an [age](https://age-encryption.org) public key, so it can't decrypt the queue itself.
 2. **A daily release** (a GitHub Action) decrypts the queue with the private key, which is stored only as an Actions secret. It writes plain JSON for the leaves that are due by the release date (UTC) and deploys the site to Pages. Released data exists only in the deployed site, never in a commit.
 3. **The pages are static HTML.** A small script reads the release date from `release.json`, fetches the leaf for the page, and displays it.
 
@@ -36,17 +36,18 @@ The age **public** key isn't secret. `.gitignore` covers the usual file names, b
 
 ## Local development
 
-You need Ruby (standard library only; `.ruby-version` says 3.4, and 3.3 works) and the [age](https://age-encryption.org) CLI (`sudo apt install age` on Ubuntu or Debian).
+You need Ruby (`.ruby-version` says 3.4, and 3.3 works), Bundler, and the [age](https://age-encryption.org) CLI (`sudo apt install age` on Ubuntu or Debian). The publisher itself uses only Ruby's standard library; the Gemfile is for RSpec.
 
 ```bash
-bin/test                                    # all tests (CI runs them on every push and PR)
+bundle install
+bundle exec rspec                           # all specs (CI runs them on every push and PR)
 
 # Release the fixture queue for any date into a new folder, then serve it.
-bin/release test/fixtures/queue.age tmp/site --date 2026-11-12 \
-  --identity test/fixtures/fixture-identity.txt
+bin/release spec/fixtures/queue tmp/site --date 2026-11-12 \
+  --identity spec/fixtures/fixture-identity.txt
 ruby -run -e httpd tmp/site -p 8000         # http://localhost:8000
 
-bin/fixtures                                # regenerate test/fixtures/queue.age
+bin/fixtures                                # regenerate spec/fixtures/queue/
 ```
 
 The fixture key is committed on purpose because it protects nothing. A real release reads its key from `AGE_SECRET_KEY` instead. See [`docs/data-contract.md`](docs/data-contract.md) for the queue format and every released file.

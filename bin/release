@@ -3,39 +3,38 @@
 
 # Releases the leaves due by a date (UTC) into a new site directory.
 #
-#   AGE_SECRET_KEY=... bin/release <queue.age> <out-dir> [--date YYYY-MM-DD] [--base-url URL]
-#   bin/release <queue.age> <out-dir> --identity test/fixtures/fixture-identity.txt
+#   AGE_SECRET_KEY=... bin/release <queue-dir> <out-dir> [--date YYYY-MM-DD] [--base-url URL]
+#   bin/release spec/fixtures/queue <out-dir> --identity spec/fixtures/fixture-identity.txt
 #
 # The private key comes from the AGE_SECRET_KEY environment variable (an Actions
 # secret) or, for local work with the fixture key, from --identity FILE.
 # It is never printed.
 
 require 'date'
-require 'json'
 require 'optparse'
-require_relative '../lib/sweepers/crypto'
+require_relative '../lib/sweepers/queue'
 require_relative '../lib/sweepers/release'
 
 root = File.expand_path('..', __dir__)
 options = { date: Time.now.utc.to_date, base_url: Sweepers::Release::DEFAULT_BASE_URL }
 parser = OptionParser.new do |o|
-  o.banner = 'Usage: bin/release <queue.age> <out-dir> [options]'
+  o.banner = 'Usage: bin/release <queue-dir> <out-dir> [options]'
   o.on('--date DATE', 'Release date, YYYY-MM-DD (default: today in UTC)') { |v| options[:date] = Date.iso8601(v) }
   o.on('--base-url URL', 'Absolute site URL for the sitemap') { |v| options[:base_url] = v }
   o.on('--identity FILE', 'age identity file (local/fixture use only)') { |v| options[:identity_file] = v }
 end
-queue_path, out_dir = parser.parse!(ARGV)
-abort(parser.help) unless queue_path && out_dir
+queue_dir, out_dir = parser.parse!(ARGV)
+abort(parser.help) unless queue_dir && out_dir
 
 identity = options[:identity_file] ? File.read(options[:identity_file]) : ENV.fetch('AGE_SECRET_KEY', '')
 
 begin
-  plaintext = Sweepers::Crypto.decrypt(File.binread(queue_path), identity)
-  release = Sweepers::Release.new(JSON.parse(plaintext), date: options[:date], base_url: options[:base_url])
+  leaves = Sweepers::Queue.load(queue_dir, identity)
+  release = Sweepers::Release.new(leaves, date: options[:date], base_url: options[:base_url])
   release.write(out_dir, site_dir: File.join(root, 'site'), data_dir: File.join(root, 'data'))
-rescue Sweepers::Crypto::Error, Sweepers::Release::InvalidQueue, JSON::ParserError, ArgumentError => e
+rescue Sweepers::Crypto::Error, Sweepers::Release::InvalidLeaf, ArgumentError => e
   abort("release failed: #{e.message}")
 end
 
 puts "Released #{options[:date]} (day #{Sweepers::Calendar.day_of_year(options[:date])}) to #{out_dir}: " \
-     "#{release.leaves_by_day.size} days, #{release.selections.size} selections"
+     "#{leaves.size} queued leaves, #{release.leaves_by_day.size} days released, #{release.selections.size} selections"
