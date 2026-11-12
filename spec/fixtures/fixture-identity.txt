@@ -1,3 +1,8 @@
+# TEST KEY ONLY. Committed on purpose; it protects nothing.
+# This age identity (private key) decrypts the fixture queue in spec/fixtures/queue/,
+# which holds synthetic leaves and leaves the live site had already shown. Specs and CI
+# use it to run real releases. Never encrypt real leaves to it: production uses a
+# different key pair, whose private half lives only in the AGE_SECRET_KEY Actions secret.
 # created: 2026-11-12T09:05:07-08:00
 # public key: age1gfqvxxxq68c57mh5rzxupzugpvx5c3jl7jmsf7lr0g3grwv6cq8qch0say
 AGE-SECRET-KEY-14WZRLQ490Z86FEAY6XJ4A83HYPF6KDN502ZV3LPKJW4NJLKUDF2SGN9SZV
