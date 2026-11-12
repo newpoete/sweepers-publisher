@@ -6,12 +6,13 @@
 #
 #   bin/fixtures
 #
-# - Each day gets a synthetic leaf, scored 0-7.
+# - Each day gets a synthetic leaf. Its editor score is day % 8, so 0 to 7: always
+#   below the selections threshold of 8, so synthetic leaves never become selections.
 # - The leaves the live site showed on 2026-11-12 (today, yesterday and the 7
 #   selections) replace the synthetic ones for their days. They come from the
 #   parity snapshot (spec/fixtures/parity-leaves.json) and were already public.
-# - Only the parity selections score 8 or more, so a release for 2026-11-12
-#   reproduces the live site's selections exactly.
+# - Only the 7 parity selections score 8 or more (9 or 10), so a release for
+#   2026-11-12 reproduces the live site's selections exactly.
 #
 # Every file is encrypted to the fixture recipient. The fixture identity is
 # committed on purpose: it protects nothing and lets anyone run a release.

@@ -106,8 +106,10 @@ The fictitious entry was hard-coded in Flask (`Leaf.mountweazel`), not published
 
 `bin/fixtures` writes `spec/fixtures/queue/001.age` to `366.age`, encrypted to the **fixture** key. The fixture identity (`spec/fixtures/fixture-identity.txt`) is committed on purpose: it protects nothing, and it lets anyone run a release locally. **Never encrypt real leaves to it.**
 
-- Each day has a synthetic leaf, scored 0–7.
-- The leaves the live site showed on 2026-11-12 (today, yesterday and the 7 selections) replace the synthetic ones for their days. They come from the parity snapshot (`spec/fixtures/parity-leaves.json`) and were already public. The scores for days 316 and 317 are made up.
+- Each day has a synthetic leaf. Its `score` (the editor's score, which ranks selections) is `day % 8`, so 0 to 7. That's always below the selections threshold of 8, so synthetic leaves never become selections.
+- The leaves the live site showed on 2026-11-12 (today, yesterday and the 7 selections) replace the synthetic ones for their days. They come from the parity snapshot (`spec/fixtures/parity-leaves.json`) and were already public.
+  - The 7 selections keep the scores the live site gave them, 9 or 10, which it exposed as `score-N` classes.
+  - The scores for today and yesterday (days 316 and 317) are made up, at 5, since the live site doesn't expose them.
 
 A release for **2026-11-12 reproduces the live site exactly** and releases only those 9 leaves. `spec/fixture_queue_spec.rb` checks this.
 

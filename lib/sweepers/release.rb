@@ -24,12 +24,12 @@ module Sweepers
     SNIPPET_LENGTH = 300
     DEFAULT_BASE_URL = 'https://newpoete.github.io/sweepers-publisher'
 
-    Leaf = Struct.new(:aphorism_id, :draft_id, :day_of_year, :html, :snippet, :score, :published_at,
-                      keyword_init: true)
+    # Immutable value objects (Ruby 3.2+ Data): built once from the queue, never changed.
+    Leaf = Data.define(:aphorism_id, :draft_id, :day_of_year, :html, :snippet, :score, :published_at)
 
     # A current selection: the leaf, and the date it's listed under (the most
     # recent date its day of year fell on before the release date).
-    Selection = Struct.new(:leaf, :date, :days_ago, keyword_init: true)
+    Selection = Data.define(:leaf, :date, :days_ago)
 
     attr_reader :date, :base_url
 
