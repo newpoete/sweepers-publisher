@@ -1,0 +1,25 @@
+# Secrets: age identities (private keys). The fixture identity under
+# test/fixtures/ is the one exception and is added explicitly.
+*.key
+*.age-key
+age-key.txt
+key.txt
+identity.txt
+.env
+.env.*
+
+# Decrypted queues: only the encrypted *.age form is ever committed.
+queue.json
+*.decrypted.json
+*.plain.json
+
+# Local release output (the Action builds it; never commit it).
+_site/
+release-out/
+tmp/
+
+# Editors and OS
+*~
+.DS_Store
+.vscode/
+.idea/
