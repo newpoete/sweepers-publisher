@@ -1,0 +1,61 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Regenerates the encrypted fixture queue, test/fixtures/queue.age.
+#
+#   bin/fixtures
+#
+# Contents (see docs/data-contract.md, "Fixtures"):
+# - a synthetic leaf for every day of 2025 and 2026, and for January 2027 (future);
+# - the leaves already public on the live site on 2026-11-12, taken from the
+#   parity snapshot (test/fixtures/parity-leaves.json), replacing the 2026
+#   synthetic leaves for their days;
+# - high scores only on 2025 synthetic leaves, so a release for 2026-11-12
+#   reproduces the live site's selections exactly.
+#
+# It's encrypted to the fixture recipient. The fixture identity is committed on
+# purpose: it protects nothing and lets anyone run a release locally.
+
+require 'date'
+require 'json'
+require 'time'
+require_relative '../lib/sweepers/calendar'
+require_relative '../lib/sweepers/crypto'
+
+root = File.expand_path('..', __dir__)
+fixtures = File.join(root, 'test', 'fixtures')
+
+def leaf(year, day, html:, score:)
+  date = Sweepers::Calendar.leaf_date(year, day)
+  {
+    aphorism_id: (year * 1000) + day,
+    draft_id: (year * 1000) + day,
+    year: year,
+    day_of_year: day,
+    html: html,
+    snippet: nil,
+    score: score,
+    published_at: Time.utc(date.year, date.month, date.day, 12).-(30 * 86_400).iso8601
+  }
+end
+
+def synthetic(year, day, score)
+  date = Sweepers::Calendar.leaf_date(year, day)
+  leaf(year, day, score: score,
+                  html: "<p>Fixture leaf for #{date.strftime('%-d %B')} #{year} (day #{day}).</p>\n")
+end
+
+leaves = {}
+(1..366).each { |day| leaves[[2025, day]] = synthetic(2025, day, day % 10 == 0 ? 9 : day % 8) }
+(1..366).each { |day| leaves[[2026, day]] = synthetic(2026, day, day % 8) }
+(1..31).each { |day| leaves[[2027, day]] = synthetic(2027, day, day % 8) }
+
+parity = JSON.parse(File.read(File.join(fixtures, 'parity-leaves.json')))
+parity['leaves'].each do |p|
+  leaves[[parity['year'], p['day_of_year']]] = leaf(parity['year'], p['day_of_year'], html: p['html'], score: p['score'])
+end
+
+queue = { version: 1, generated_at: Time.now.utc.iso8601, leaves: leaves.values }
+ciphertext = Sweepers::Crypto.encrypt(JSON.generate(queue), File.join(fixtures, 'fixture-recipient.txt'))
+File.write(File.join(fixtures, 'queue.age'), ciphertext)
+puts "Wrote test/fixtures/queue.age: #{leaves.size} leaves"

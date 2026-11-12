@@ -1,0 +1,58 @@
+{
+  "source": "sweepers-flask parity snapshot, 2026-11-12 00:53 UTC (leaves already public on sweeperscalendar.com)",
+  "year": 2026,
+  "leaves": [
+    {
+      "day_of_year": 317,
+      "score": 5,
+      "html": "<p>Every cliff is a historical timeline that refutes most people&#39;s core beliefs.</p>\n"
+    },
+    {
+      "day_of_year": 316,
+      "score": 5,
+      "html": "<p>There is a correlation between that sense of well being that keeps us this side of self-destruction and our capacity to dominate or, at the more civil reaches of society, influence, others.  Primatologists note that the serotonin levels of a colonial alpha vervet monkey will rise as his political fortunes do.  It is a remarkable fact that serotonin washes around in the head of a vervet monkey.  It is a more remarkable fact still that the tides of serotonin washing around in your own head will, in much the same way, rise or fall as occasion and social standing dictates.  It says that biology doesn&#39;t always predict your circumstances.  Very often circumstances predict your biology, and from the observation that low serotonin levels accompany depression follows the adaptive intuition that oppression -- or, in a pinch, a little self-righteous bullying -- will provide the most natural means for selectively inhibiting the reuptake of one&#39;s self-satisfaction.</p>\n"
+    },
+    {
+      "day_of_year": 314,
+      "score": 10,
+      "html": "<p>Children are more animal than human. Prematurely civilize your children and they will be the prey.</p>\n"
+    },
+    {
+      "day_of_year": 301,
+      "score": 9,
+      "html": "<p>Poetic suicide : two children and Ted Hughes.</p>\n",
+      "truncated_in_snapshot": false
+    },
+    {
+      "day_of_year": 298,
+      "score": 10,
+      "html": "<p>With electroencephalograms and magnetic resonance imaging, the day when a doctor may trace the flickering light of a thought through the most obscure corridors of the mind seems inevitable. The capability of restoring, or eliminating, the sensitive areas of a malfunctioning mind would not trail ...</p>\n",
+      "truncated_in_snapshot": true
+    },
+    {
+      "day_of_year": 280,
+      "score": 9,
+      "html": "<p>He who steals my name steals a few letters in the alphabet. But he who steals my credit card number steals my soul.</p>\n",
+      "truncated_in_snapshot": false
+    },
+    {
+      "day_of_year": 275,
+      "score": 10,
+      "html": "<p>All statement is overstatement.</p>\n",
+      "truncated_in_snapshot": false
+    },
+    {
+      "day_of_year": 274,
+      "score": 9,
+      "html": "<p>Most importantly, magnanimity requires the opportunity to be magnanimous.</p>\n",
+      "truncated_in_snapshot": false
+    },
+    {
+      "day_of_year": 272,
+      "score": 10,
+      "html": "<p>As soon as the artificial problem of scarcity is finally eradicated, economics will immediately turn to the dangerous problem of superabundance. States will fall into turmoil as people riot for want of absolutely nothing. And the leisure class will be distinguished not by its conspicuous ...</p>\n",
+      "truncated_in_snapshot": true
+    }
+  ],
+  "note": "Scores for days 316 and 317 are fixture values; the live site does not expose them."
+}

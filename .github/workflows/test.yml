@@ -1,0 +1,30 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
+        with:
+          ruby-version: .ruby-version
+      - name: Install age
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq age
+          age --version
+      - name: Run tests
+        run: bin/test --verbose
+      - name: Release the fixture queue for the parity date
+        run: |
+          bin/release test/fixtures/queue.age "$RUNNER_TEMP/site" --date 2026-11-12 \
+            --identity test/fixtures/fixture-identity.txt
+          ls "$RUNNER_TEMP/site" "$RUNNER_TEMP/site/leaves" | head -20

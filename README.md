@@ -36,11 +36,20 @@ The age **public** key isn't secret. `.gitignore` covers the usual file names, b
 
 ## Local development
 
-You need Ruby (standard library only; see `.ruby-version`) and the `age` CLI. The release script, fixtures and tests arrive in [#69](https://github.com/newpoete/sweepers-editor/issues/69). This section will then give the exact commands to:
-- generate and encrypt fixtures;
-- run a release for any date into a local folder;
-- serve that folder (`ruby -run -e httpd <dir> -p 8000`);
-- run the tests.
+You need Ruby (standard library only; `.ruby-version` says 3.4, and 3.3 works) and the [age](https://age-encryption.org) CLI (`sudo apt install age` on Ubuntu or Debian).
+
+```bash
+bin/test                                    # all tests (CI runs them on every push and PR)
+
+# Release the fixture queue for any date into a new folder, then serve it.
+bin/release test/fixtures/queue.age tmp/site --date 2026-11-12 \
+  --identity test/fixtures/fixture-identity.txt
+ruby -run -e httpd tmp/site -p 8000         # http://localhost:8000
+
+bin/fixtures                                # regenerate test/fixtures/queue.age
+```
+
+The fixture key is committed on purpose because it protects nothing. A real release reads its key from `AGE_SECRET_KEY` instead. See [`docs/data-contract.md`](docs/data-contract.md) for the queue format and every released file.
 
 ## Licenses
 
