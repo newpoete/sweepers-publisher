@@ -9,17 +9,17 @@ This repo holds no editorial state. [Sweepers Editor](https://github.com/newpoet
 ## How it works
 
 ```
-Sweepers Editor ──(one age-encrypted file per leaf, committed here)──▶ sweepers-publisher
+Sweepers Editor ──(one age-encrypted file per day, committed here)──▶ sweepers-publisher
                                                                 │
                               daily GitHub Action, just after 00:00 UTC
                                                                 │
-                     decrypt ─▶ keep only leaves due by today ─▶ write JSON
+                 decrypt ─▶ keep only today, yesterday, selections ─▶ write JSON
                                                                 │
                                          GitHub Pages ◀── static HTML + JS
 ```
 
-1. **The editor publishes** by committing each leaf as its own encrypted file in `data/queue/`. It encrypts to an [age](https://age-encryption.org) public key, so it can't decrypt the queue itself.
-2. **A daily release** (a GitHub Action) decrypts the queue with the private key, which is stored only as an Actions secret. It writes plain JSON for the leaves that are due by the release date (UTC) and deploys the site to Pages. Released data exists only in the deployed site, never in a commit.
+1. **The editor publishes** by writing each day's leaf to its own encrypted file, `data/queue/001.age` to `366.age`, overwriting that day's previous leaf. It encrypts to an [age](https://age-encryption.org) public key, so it can't decrypt the queue itself.
+2. **A daily release** (a GitHub Action) decrypts the queue with the private key, which is stored only as an Actions secret. It writes plain JSON for only the days the site shows (today, yesterday and the current selections, by the release date in UTC) and deploys the site to Pages. Released data exists only in the deployed site, never in a commit.
 3. **The pages are static HTML.** A small script reads the release date from `release.json`, fetches the leaf for the page, and displays it.
 
 A public repo can't keep a secret, so this is how tomorrow's leaf stays a surprise: anything committed here in readable form is public at once.

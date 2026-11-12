@@ -53,5 +53,5 @@
       "truncated_in_snapshot": true
     }
   ],
-  "note": "Scores for days 316 and 317 are fixture values; the live site does not expose them. The live site shows every leaf under the current year, so the year these were published is unknown; bin/fixtures files them under 2019."
+  "note": "Scores for days 316 and 317 are fixture values; the live site does not expose them. A leaf belongs to its day of year whatever the year, so no year is recorded."
 }

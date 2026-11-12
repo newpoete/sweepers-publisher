@@ -22,23 +22,10 @@ RSpec.describe Sweepers::Calendar do
     end
   end
 
-  describe '.leaf_date' do
-    it 'returns the real date for a year and day of year' do
-      expect(described_class.leaf_date(2026, 317)).to eq(Date.new(2026, 11, 12))
-      expect(described_class.leaf_date(2026, 366)).to eq(Date.new(2026, 12, 31))
-      expect(described_class.leaf_date(2027, 1)).to eq(Date.new(2027, 1, 1))
-    end
-
-    context 'when day 60 falls in a leap year' do
-      it 'returns 29 February' do
-        expect(described_class.leaf_date(2028, 60)).to eq(Date.new(2028, 2, 29))
-      end
-    end
-
-    context 'when day 60 falls in a non-leap year' do
-      it 'returns 1 March, so the leaf is never due early' do
-        expect(described_class.leaf_date(2027, 60)).to eq(Date.new(2027, 3, 1))
-      end
+  describe '.canonical_date' do
+    it 'returns the month and day of a day of year, in the canonical year' do
+      expect(described_class.canonical_date(60)).to eq(Date.new(2000, 2, 29))
+      expect(described_class.canonical_date(317)).to eq(Date.new(2000, 11, 12))
     end
   end
 

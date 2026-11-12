@@ -37,4 +37,4 @@ rescue Sweepers::Crypto::Error, Sweepers::Release::InvalidLeaf, ArgumentError =>
 end
 
 puts "Released #{options[:date]} (day #{Sweepers::Calendar.day_of_year(options[:date])}) to #{out_dir}: " \
-     "#{leaves.size} queued leaves, #{release.leaves_by_day.size} days released, #{release.selections.size} selections"
+     "#{leaves.size} days queued, #{release.released_leaves.size} leaves released, #{release.selections.size} selections"
