@@ -32,7 +32,7 @@ begin
   leaves = Sweepers::Queue.load(queue_dir, identity)
   release = Sweepers::Release.new(leaves, date: options[:date], base_url: options[:base_url])
   release.write(out_dir, site_dir: File.join(root, 'site'), data_dir: File.join(root, 'data'),
-                         shells_dir: File.join(root, 'shells'))
+                         templates_dir: File.join(root, 'templates'))
 rescue Sweepers::Crypto::Error, Sweepers::Release::InvalidLeaf, ArgumentError => e
   abort("release failed: #{e.message}")
 end

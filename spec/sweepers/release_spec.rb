@@ -137,11 +137,11 @@ RSpec.describe Sweepers::Release do
   end
 
   describe '#write' do
-    it 'builds the site with the shell, data files and selection pages' do
+    it 'builds the site with its pages, data files and selection pages' do
       Dir.mktmpdir do |dir|
         out = File.join(dir, 'site')
         release_on('2026-11-12', build_leaf(314, score: 10), build_leaf(317))
-          .write(out, site_dir: File.join(ROOT, 'site'), data_dir: File.join(ROOT, 'data'), shells_dir: File.join(ROOT, 'shells'))
+          .write(out, site_dir: File.join(ROOT, 'site'), data_dir: File.join(ROOT, 'data'), templates_dir: File.join(ROOT, 'templates'))
         paths = %w[release.json selections.json sitemap.txt mountweazel.json leaves/314.json leaves/317.json
                    selection/314.html selections.html today.html]
         expect(paths.reject { |path| File.exist?(File.join(out, path)) }).to be_empty
@@ -154,7 +154,7 @@ RSpec.describe Sweepers::Release do
       it 'refuses to write' do
         Dir.mktmpdir do |dir|
           release = release_on('2026-11-12')
-          expect { release.write(dir, site_dir: File.join(ROOT, 'site'), data_dir: File.join(ROOT, 'data'), shells_dir: File.join(ROOT, 'shells')) }
+          expect { release.write(dir, site_dir: File.join(ROOT, 'site'), data_dir: File.join(ROOT, 'data'), templates_dir: File.join(ROOT, 'templates')) }
             .to raise_error(ArgumentError, /already exists/)
         end
       end

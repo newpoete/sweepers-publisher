@@ -19,8 +19,8 @@
   - No `require` in spec files: `.rspec` loads `spec_helper`.
   - Cover valid, edge and invalid cases.
 - Run with `bundle exec rspec`. Specs that need the `age` CLI call `skip_without_age`; CI installs it.
-- **The page script** (`site/assets/javascripts/sweepers.js`) keeps its date logic in pure functions, specced with Node's built-in runner (`node --test spec/javascripts/*.test.js`), with no npm packages. Follow the same Even Better Specs rules where they apply. Set `process.env.TZ` per example to test time zones.
-- **Page shells** in `site/` (published as they are) and `shells/` (copied by the release, e.g. to `selection/<day>.html`) are plain HTML with no templating. Their shared navbar and footer sit between `<!-- layout:… -->` markers, and `spec/site/pages_spec.rb` checks they stay identical.
+- **Page scripts** are two vanilla files with no npm packages: `site/assets/javascripts/calendar.js` (pure date and formatting logic, no DOM) and `pages.js` (fetching and one small renderer per page type). Keep new logic in the one it belongs to. Spec the pure functions with Node's built-in runner (`node --test spec/javascripts/*.test.js`). Follow the same Even Better Specs rules where they apply. Set `process.env.TZ` per example to test time zones.
+- **Pages** in `site/` (published as they are) and **templates** in `templates/` (copied by the release, e.g. `templates/selection.html` to `selection/<day>.html`) are plain HTML. Their shared navbar and footer sit between `<!-- layout:… -->` markers, and `spec/site/pages_spec.rb` checks they stay identical.
 - **Issues live in `newpoete/sweepers-editor`**, in the Sweepers GitHub Project. A PR here
   closes its issue with `Closes newpoete/sweepers-editor#N`, and no other closing keyword may appear in the body.
 
