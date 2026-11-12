@@ -11,9 +11,11 @@ module Sweepers
   # Turns the decrypted queue into the site's data for one release date (UTC).
   #
   # A leaf belongs to its day of year, whatever the year. The release writes
-  # only the days the site shows: today, yesterday and the current selections.
-  # Selections look back, never ahead, so no day after the release date is ever
-  # written anywhere. See docs/data-contract.md for every file this produces.
+  # only the days the site can show: today, yesterday, the day before yesterday
+  # (a reader west of UTC can be a day behind the release, so their yesterday is
+  # the release's day before) and the current selections. Selections look back,
+  # never ahead, so no day after the release date is ever written anywhere.
+  # See docs/data-contract.md for every file this produces.
   class Release
     class InvalidLeaf < StandardError; end
 
@@ -49,6 +51,10 @@ module Sweepers
       Calendar.day_of_year(date - 1)
     end
 
+    def day_before_yesterday
+      Calendar.day_of_year(date - 2)
+    end
+
     # Flask's Leaf.selections. For each of the 90 days before the release date
     # (today excluded), take that day's leaf. Keep scores of 8 or more, then the
     # 7 best by score (more recent day first on ties), listed newest first.
@@ -64,10 +70,10 @@ module Sweepers
       end
     end
 
-    # The only leaves that leave this class, by day: today, yesterday and the
-    # current selections, where the queue has a leaf for them.
+    # The only leaves that leave this class, by day: today, yesterday, the day
+    # before yesterday and the current selections, where the queue has a leaf.
     def released_leaves
-      @released_leaves ||= ([today, yesterday] + selections.map { |s| s.leaf.day_of_year })
+      @released_leaves ||= ([today, yesterday, day_before_yesterday] + selections.map { |s| s.leaf.day_of_year })
                            .uniq.filter_map { |day| @queue[day] }
                            .to_h { |leaf| [leaf.day_of_year, leaf] }
     end
