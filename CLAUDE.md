@@ -5,7 +5,20 @@
 - **This repo is public.** Never commit or post an age private key (other than the fixture
   identity), a decrypted queue, release output, or any real leaf dated after today. See the
   README's hygiene rules.
-- **Ruby standard library only.** No Gemfile unless tests truly need one. Use `minitest`, which ships with Ruby.
+- **Ruby standard library only** in `lib/` and `bin/`. The Gemfile is for test gems.
+
+## Tests
+
+- **RSpec, following [Even Better Specs](https://evenbetterspecs.github.io/).** This is the project standard. In short:
+  - `describe` the class (`RSpec.describe Sweepers::Release`), then its methods: `.class_method` and `#instance_method`.
+  - Start every `context` with "when". Keep each description to one line of 100 characters or fewer.
+  - Use `described_class`, never the class name, inside examples. Use `subject` when the initializer takes no arguments.
+  - **No `let`, `let!`, `before` hooks or shared examples.** Each example builds its own data, with helpers from `spec/support/` (`build_leaf`) in place of factories.
+  - Group expectations that share a setup into one example. Failures are aggregated globally (`spec_helper.rb`).
+  - Always `expect`, never `should`. Use `instance_double` over `double`. Mock only external dependencies.
+  - No `require` in spec files: `.rspec` loads `spec_helper`.
+  - Cover valid, edge and invalid cases.
+- Run with `bundle exec rspec`. Specs that need the `age` CLI call `skip_without_age`; CI installs it.
 - **Issues live in `newpoete/sweepers-editor`**, in the Sweepers GitHub Project. A PR here
   closes its issue with `Closes newpoete/sweepers-editor#N`, and no other closing keyword may appear in the body.
 

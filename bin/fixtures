@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Regenerates the encrypted fixture queue in spec/fixtures/queue/: one leaf for
+# every day of the year, 001.age to 366.age.
+#
+#   bin/fixtures
+#
+# - Each day gets a synthetic leaf. Its editor score is day % 8, so 0 to 7: always
+#   below the selections threshold of 8, so synthetic leaves never become selections.
+# - The leaves the live site showed on 2026-11-12 (today, yesterday and the 7
+#   selections) replace the synthetic ones for their days. They come from the
+#   parity snapshot (spec/fixtures/parity-leaves.json) and were already public.
+# - Only the 7 parity selections score 8 or more (9 or 10), so a release for
+#   2026-11-12 reproduces the live site's selections exactly.
+#
+# Every file is encrypted to the fixture recipient. The fixture identity is
+# committed on purpose: it protects nothing and lets anyone run a release.
+
+require 'fileutils'
+require 'json'
+require 'time'
+require_relative '../lib/sweepers/calendar'
+require_relative '../lib/sweepers/queue'
+
+root = File.expand_path('..', __dir__)
+fixtures = File.join(root, 'spec', 'fixtures')
+queue_dir = File.join(fixtures, 'queue')
+
+def leaf(day, html:, score:)
+  { 'version' => 1, 'aphorism_id' => 9000 + day, 'draft_id' => 9000 + day, 'day_of_year' => day,
+    'html' => html, 'snippet' => nil, 'score' => score, 'published_at' => '2019-01-01T12:00:00Z' }
+end
+
+leaves = (1..366).to_h do |day|
+  label = Sweepers::Calendar.canonical_date(day).strftime('%-d %B')
+  [day, leaf(day, score: day % 8, html: "<p>Fixture leaf for #{label} (day #{day}).</p>\n")]
+end
+JSON.parse(File.read(File.join(fixtures, 'parity-leaves.json')))['leaves'].each do |p|
+  leaves[p['day_of_year']] = leaf(p['day_of_year'], html: p['html'], score: p['score'])
+end
+
+FileUtils.rm_rf(queue_dir)
+FileUtils.mkdir_p(queue_dir)
+recipients = File.join(fixtures, 'fixture-recipient.txt')
+leaves.each_value { |l| Sweepers::Queue.write(l, queue_dir, recipients) }
+puts "Wrote #{leaves.size} leaves to spec/fixtures/queue/"

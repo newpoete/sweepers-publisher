@@ -1,0 +1,5 @@
+# TEST KEY ONLY. The age recipient (public key) for the fixture queue.
+# bin/fixtures encrypts each fixture leaf to this key; spec/fixtures/fixture-identity.txt
+# is its private half. The production public key will live in config/recipients.txt
+# (Epic 3) and is the only key the editor gets.
+age1gfqvxxxq68c57mh5rzxupzugpvx5c3jl7jmsf7lr0g3grwv6cq8qch0say
