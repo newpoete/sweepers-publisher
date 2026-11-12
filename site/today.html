@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Sweepers Calendar</title>
+
+    <!-- Bootstrap 3.3.4, as on the original site -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/stylesheets/bootstrap.css">
+    <link rel="stylesheet" href="assets/stylesheets/sweepers.css">
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IM+Fell+DW+Pica">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/vnd.microsoft.icon" href="favicon.ico?v=20151219">
+    <link rel="shortcut icon" href="favicon.ico?v=20151219">
+  </head>
+
+  <body data-page="today" data-root=".">
+    <!-- layout:navbar -->
+    <nav class="navbar navbar-default" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-brand-centered">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
+          <div class="navbar-brand navbar-brand-centered">
+            <a href="./">The Sweepers Calendar</a>
+          </div>
+        </div>
+
+        <div class="collapse navbar-collapse" id="navbar-brand-centered">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="today">Today</a></li>
+            <li class="inactive"><a href="yesterday">Yesterday</a></li>
+            <li class="inactive"><a href="selections">Selections</a></li>
+          </ul>
+
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="http://sweeperschapbook.blogspot.com/" target="_blank">Blog</a></li>
+            <li><a href="https://twitter.com/newpoete" target="_blank">Twitter</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <!-- /layout:navbar -->
+
+    <div class="container">
+      <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+          <div id="leaf">
+            <div id="leaf-date" hidden>
+              <span class="day_of_week"></span>,
+              <span class="day_of_month"></span>
+              <span class="full_month"></span>
+              <span class="year"></span>
+            </div>
+            <div id="leaf-text">
+              <noscript><p class="leaf-error">The Sweepers Calendar needs JavaScript to show the day's leaf.</p></noscript>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3"></div>
+      </div>
+    </div>
+
+    <!-- layout:footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-3">
+            <p class="pull-left"><span class="livestamp"></span></p>
+          </div>
+
+          <div class="col-md-6">
+            <p class="center">Some rights reserved, <span class="copyright-year">2026</span></p>
+          </div>
+
+          <div class="col-md-3">
+            <p class="pull-right">
+              <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">
+                <img alt="Creative Commons License" style="border-width:0"
+                     src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png">
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <!-- /layout:footer -->
+
+    <!-- jQuery and Bootstrap 3.3.4 (the navbar collapse needs them), as on the original site -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="assets/javascripts/sweepers.js"></script>
+  </body>
+</html>

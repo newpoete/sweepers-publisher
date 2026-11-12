@@ -22,9 +22,9 @@ RSpec.describe Sweepers::Release do
   end
 
   describe '#released_leaves' do
-    it 'releases today, yesterday and the selections only' do
+    it 'releases today, yesterday, the day before and the selections only' do
       leaves = (1..366).map { |day| build_leaf(day, score: day == 300 ? 9 : 5) }
-      expect(released_days(release_on('2026-11-12', *leaves))).to eq([300, 316, 317])
+      expect(released_days(release_on('2026-11-12', *leaves))).to eq([300, 315, 316, 317])
     end
 
     it 'never releases a day after the release date' do
@@ -47,15 +47,16 @@ RSpec.describe Sweepers::Release do
     end
 
     context 'when the release falls on 1 January' do
-      it 'releases 31 December as yesterday' do
-        expect(released_days(release_on('2027-01-01', build_leaf(1), build_leaf(366)))).to eq([1, 366])
+      it 'releases 31 and 30 December as the two days before' do
+        release = release_on('2027-01-01', build_leaf(1), build_leaf(365), build_leaf(366), build_leaf(364))
+        expect(released_days(release)).to eq([1, 365, 366])
       end
     end
 
     context 'when the release falls on 1 March of a non-leap year' do
       it 'treats 28 February as yesterday and never releases day 60' do
-        release = release_on('2027-03-01', build_leaf(59), build_leaf(60), build_leaf(61))
-        expect(released_days(release)).to eq([59, 61])
+        release = release_on('2027-03-01', build_leaf(58), build_leaf(59), build_leaf(60), build_leaf(61))
+        expect(released_days(release)).to eq([58, 59, 61])
       end
     end
 

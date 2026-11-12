@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Serves a released site locally the way GitHub Pages does:
+#   /today -> today.html, /calendar -> 301 /calendar/, /calendar/ -> calendar/index.html,
+#   anything missing -> 404 with 404.html when it exists.
+#
+#   bin/serve tmp/site [port]        # default port 8000
+#
+# Development only (webrick is in the Gemfile's development group).
+
+require 'webrick'
+
+dir = ARGV[0] or abort('Usage: bin/serve <site-dir> [port]')
+port = Integer(ARGV[1] || 8000)
+root = File.expand_path(dir)
+
+server = WEBrick::HTTPServer.new(Port: port, BindAddress: '127.0.0.1', AccessLog: [],
+                                 Logger: WEBrick::Log.new($stderr, WEBrick::Log::WARN))
+server.mount_proc('/') do |request, response|
+  path = File.expand_path(File.join(root, request.path))
+  raise WEBrick::HTTPStatus::Forbidden unless path.start_with?(root)
+
+  if File.directory?(path) && !request.path.end_with?('/')
+    response.set_redirect(WEBrick::HTTPStatus::MovedPermanently, "#{request.path}/")
+  end
+  path = File.join(path, 'index.html') if File.directory?(path)
+  path = "#{path}.html" if !File.file?(path) && File.file?("#{path}.html")
+
+  if File.file?(path)
+    response.status = 200
+    response.body = File.binread(path)
+  else
+    response.status = 404
+    not_found = File.join(root, '404.html')
+    response.body = File.file?(not_found) ? File.binread(not_found) : "Not found\n"
+    path = not_found
+  end
+  response['Content-Type'] = WEBrick::HTTPUtils.mime_type(path, WEBrick::HTTPUtils::DefaultMimeTypes)
+  response['Cache-Control'] = 'no-cache'
+end
+
+trap('INT') { server.shutdown }
+puts "Serving #{root} at http://localhost:#{port}/ (Ctrl-C to stop)"
+server.start
