@@ -101,6 +101,30 @@ describe('Sweepers.headingParts and Sweepers.title', () => {
   });
 });
 
+describe('Sweepers.selectionDayFromPath', () => {
+  it('reads the day from a selection URL, with or without the staging prefix or .html', () => {
+    assert.equal(Sweepers.selectionDayFromPath('/sweepers-publisher/selection/314'), 314);
+    assert.equal(Sweepers.selectionDayFromPath('/selection/7.html'), 7);
+    assert.equal(Sweepers.selectionDayFromPath('/selection/366/'), 366);
+  });
+
+  describe('when the path is not a selection of a valid day', () => {
+    it('returns null', () => {
+      for (const path of ['/selection/0', '/selection/367', '/selection/abc', '/selections', '/today']) {
+        assert.equal(Sweepers.selectionDayFromPath(path), null, path);
+      }
+    });
+  });
+});
+
+describe('Sweepers.findSelection', () => {
+  it("finds a selection by day, or null when the day isn't a current selection", () => {
+    const selections = [{ day_of_year: 314, date: '2026-11-09', snippet: 'a' }, { day_of_year: 301, date: '2026-10-27', snippet: 'b' }];
+    assert.equal(Sweepers.findSelection(selections, 301).date, '2026-10-27');
+    assert.equal(Sweepers.findSelection(selections, 300), null);
+  });
+});
+
 describe('Sweepers.clockText', () => {
   it("shows the reader's local time and zone", () => {
     const now = inZone('America/Los_Angeles', '2026-11-12T00:53:08Z');

@@ -1,8 +1,9 @@
 /*
- * Sweepers Calendar: fills a page with the leaf for the reader's date.
+ * Sweepers Calendar: fills each page from the released data.
  *
- * Each page's <body> says which leaf it shows (data-page="today" or
- * "yesterday") and where the site root is, relative to the page (data-root).
+ * Each page's <body> says what it shows (data-page: "today", "yesterday",
+ * "selections" or "selection") and where the site root is, relative to the
+ * page (data-root). A selection page reads its day from the URL.
  *
  * The date a page shows is the reader's local date, capped at the latest
  * release date (release.json): releases run just after 00:00 UTC, so a reader
@@ -96,6 +97,20 @@
     return 'Sweepers Calendar for ' + ordinal(date.day) + ' of ' + MONTHS[date.month - 1];
   }
 
+  // The day of year in a selection page's URL: ".../selection/314" (or 314.html).
+  function selectionDayFromPath(pathname) {
+    var match = /\/selection\/(\d{1,3})(?:\.html)?\/?$/.exec(pathname);
+    var day = match ? Number(match[1]) : NaN;
+    return day >= 1 && day <= 366 ? day : null;
+  }
+
+  function findSelection(selections, day) {
+    for (var i = 0; i < selections.length; i += 1) {
+      if (selections[i].day_of_year === day) { return selections[i]; }
+    }
+    return null;
+  }
+
   function pad(n) {
     return (n < 10 ? '0' : '') + n;
   }
@@ -134,9 +149,46 @@
     doc.title = title(date);
   }
 
-  function showError(doc) {
-    doc.getElementById('leaf-text').innerHTML =
-      '<p class="leaf-error">The leaf could not be loaded. Please try again later.</p>';
+  // The selections list, in the live site's markup (without its score-N classes).
+  function showSelections(doc, rootPath, selections) {
+    var list = doc.getElementById('selection-list');
+    list.textContent = '';
+    if (!selections.length) {
+      var none = doc.createElement('div');
+      none.id = 'no-selections';
+      none.textContent = 'No selections found.';
+      list.appendChild(none);
+      return;
+    }
+    selections.forEach(function (selection) {
+      var parts = headingParts(parseDate(selection.date));
+      var item = doc.createElement('div');
+      item.className = 'selection';
+      var snippet = doc.createElement('div');
+      snippet.className = 'snippet';
+      snippet.textContent = selection.snippet;
+      var foot = doc.createElement('div');
+      foot.className = 'foot';
+      var link = doc.createElement('a');
+      link.href = rootPath + '/selection/' + selection.day_of_year;
+      [['day_of_month', parts.dayOfMonth], ['full_month', parts.month], ['year', parts.year]].forEach(function (pair, i) {
+        if (i > 0) { link.appendChild(doc.createTextNode(' ')); }
+        var span = doc.createElement('span');
+        span.className = pair[0];
+        span.textContent = pair[1];
+        link.appendChild(span);
+      });
+      foot.appendChild(link);
+      item.appendChild(snippet);
+      item.appendChild(foot);
+      list.appendChild(item);
+    });
+  }
+
+  function showError(doc, targetId) {
+    var what = targetId === 'selection-list' ? 'The selections' : 'The leaf';
+    doc.getElementById(targetId || 'leaf-text').innerHTML =
+      '<p class="leaf-error">' + what + ' could not be loaded. Please try again later.</p>';
   }
 
   function startClock(doc, win) {
@@ -154,6 +206,25 @@
     startClock(doc, win);
     var year = doc.querySelector('.copyright-year');
     if (year) { year.textContent = String(new Date().getFullYear()); }
+    if (page === 'selections') {
+      getJson(rootPath, 'selections.json').then(function (selections) {
+        showSelections(doc, rootPath, selections || []);
+      }).catch(function () { showError(doc, 'selection-list'); });
+      return;
+    }
+
+    if (page === 'selection') {
+      var day = selectionDayFromPath(win.location.pathname);
+      getJson(rootPath, 'selections.json').then(function (selections) {
+        var selection = day && findSelection(selections || [], day);
+        if (!selection) { throw new Error('not a current selection: ' + day); }
+        return getJson(rootPath, 'leaves/' + day + '.json').then(function (leaf) {
+          showLeaf(doc, parseDate(selection.date), leaf);
+        });
+      }).catch(function () { showError(doc); });
+      return;
+    }
+
     if (page !== 'today' && page !== 'yesterday') { return; }
 
     getJson(rootPath, 'release.json').then(function (release) {
@@ -168,6 +239,7 @@
   return {
     calendarDate: calendarDate, localDate: localDate, parseDate: parseDate, addDays: addDays,
     dayOfYear: dayOfYear, todayShown: todayShown, shownDate: shownDate, weekday: weekday,
-    ordinal: ordinal, headingParts: headingParts, title: title, clockText: clockText, start: start
+    ordinal: ordinal, headingParts: headingParts, title: title, clockText: clockText,
+    selectionDayFromPath: selectionDayFromPath, findSelection: findSelection, start: start
   };
 });
