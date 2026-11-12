@@ -27,7 +27,7 @@ jobs:
       - name: Run page script specs
         run: |
           node --version
-          node --test spec/javascripts/
+          node --test spec/javascripts/*.test.js
       - name: Release the fixture queue for the parity date
         run: |
           bin/release spec/fixtures/queue "$RUNNER_TEMP/site" --date 2026-11-12 \

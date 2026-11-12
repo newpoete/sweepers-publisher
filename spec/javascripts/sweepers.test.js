@@ -1,5 +1,5 @@
 // Specs for site/assets/javascripts/sweepers.js, run with Node's built-in runner:
-//   node --test spec/javascripts/
+//   node --test spec/javascripts/*.test.js
 // Each example sets the reader's time zone (process.env.TZ) and a fixed moment.
 'use strict';
 

@@ -41,7 +41,7 @@ You need Ruby (`.ruby-version` says 3.4, and 3.3 works), Bundler, and the [age](
 ```bash
 bundle install
 bundle exec rspec                           # Ruby specs (CI runs both on every push and PR)
-node --test spec/javascripts/               # page script specs (Node 18+, no packages)
+node --test spec/javascripts/*.test.js               # page script specs (Node 18+, no packages)
 
 # Release the fixture queue for any date into a new folder, then serve it.
 bin/release spec/fixtures/queue tmp/site --date 2026-11-12 \
