@@ -1,26 +1,20 @@
 /*
- * Sweepers Calendar: fills a page with the leaf for the reader's date.
+ * Sweepers Calendar dates: pure functions, no DOM and no fetching.
  *
- * Each page's <body> says which leaf it shows (data-page="today" or
- * "yesterday") and where the site root is, relative to the page (data-root).
+ * A page shows the reader's local date, capped at the latest release date
+ * (release.json): releases run just after 00:00 UTC, so a reader east of UTC
+ * sees the release's date until the next release runs, and a reader west of
+ * UTC always sees their own date. Nothing after the release date is ever
+ * released, so nothing after it is ever fetched.
  *
- * The date a page shows is the reader's local date, capped at the latest
- * release date (release.json): releases run just after 00:00 UTC, so a reader
- * east of UTC sees the release's date until the next release runs, and a
- * reader west of UTC always sees their own date. Nothing after the release
- * date is ever released, so nothing after it is ever fetched.
- *
- * The date functions are pure and exported for Node (spec/javascripts/).
+ * Loaded as window.SweepersCalendar in the browser, and by require() in the
+ * Node specs (spec/javascripts/calendar.test.js).
  */
 (function (root, factory) {
-  var api = factory();
   if (typeof module === 'object' && module.exports) {
-    module.exports = api;
+    module.exports = factory();
   } else {
-    root.Sweepers = api;
-    if (typeof document !== 'undefined') {
-      document.addEventListener('DOMContentLoaded', function () { api.start(document, window); });
-    }
+    root.SweepersCalendar = factory();
   }
 })(this, function () {
   'use strict';
@@ -70,7 +64,7 @@
     return compare(local, release) > 0 ? release : local;
   }
 
-  // The date a page shows: "today" or "yesterday".
+  // The date a leaf page shows: "today" or "yesterday".
   function shownDate(page, now, releaseIso) {
     var today = todayShown(now, releaseIso);
     return page === 'yesterday' ? addDays(today, -1) : today;
@@ -112,62 +106,9 @@
     return zone ? stamp + ' ' + zone : stamp;
   }
 
-  // Browser only: fetch JSON relative to the site root; null when missing.
-  function getJson(rootPath, path) {
-    return fetch(rootPath + '/' + path, { cache: 'no-cache' }).then(function (response) {
-      if (response.status === 404) { return null; }
-      if (!response.ok) { throw new Error(path + ': HTTP ' + response.status); }
-      return response.json();
-    });
-  }
-
-  function showLeaf(doc, date, leaf) {
-    var parts = headingParts(date);
-    var heading = doc.getElementById('leaf-date');
-    heading.querySelector('.day_of_week').textContent = parts.dayOfWeek;
-    heading.querySelector('.day_of_month').textContent = parts.dayOfMonth;
-    heading.querySelector('.full_month').textContent = parts.month;
-    heading.querySelector('.year').textContent = parts.year;
-    heading.hidden = false;
-    // Leaf HTML comes from the editor and is trusted, as Flask's `| safe` was.
-    doc.getElementById('leaf-text').innerHTML = leaf ? leaf.html : '';
-    doc.title = title(date);
-  }
-
-  function showError(doc) {
-    doc.getElementById('leaf-text').innerHTML =
-      '<p class="leaf-error">The leaf could not be loaded. Please try again later.</p>';
-  }
-
-  function startClock(doc, win) {
-    var clock = doc.querySelector('.livestamp');
-    if (!clock) { return; }
-    var tick = function () { clock.textContent = clockText(new Date()); };
-    tick();
-    win.setInterval(tick, 1000);
-  }
-
-  function start(doc, win) {
-    var body = doc.body;
-    var rootPath = body.getAttribute('data-root') || '.';
-    var page = body.getAttribute('data-page');
-    startClock(doc, win);
-    var year = doc.querySelector('.copyright-year');
-    if (year) { year.textContent = String(new Date().getFullYear()); }
-    if (page !== 'today' && page !== 'yesterday') { return; }
-
-    getJson(rootPath, 'release.json').then(function (release) {
-      if (!release) { throw new Error('release.json missing'); }
-      var date = shownDate(page, new Date(), release.date);
-      return getJson(rootPath, 'leaves/' + dayOfYear(date) + '.json').then(function (leaf) {
-        showLeaf(doc, date, leaf);
-      });
-    }).catch(function () { showError(doc); });
-  }
-
   return {
     calendarDate: calendarDate, localDate: localDate, parseDate: parseDate, addDays: addDays,
     dayOfYear: dayOfYear, todayShown: todayShown, shownDate: shownDate, weekday: weekday,
-    ordinal: ordinal, headingParts: headingParts, title: title, clockText: clockText, start: start
+    ordinal: ordinal, headingParts: headingParts, title: title, clockText: clockText
   };
 });

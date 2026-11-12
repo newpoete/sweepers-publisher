@@ -91,10 +91,11 @@ module Sweepers
       files
     end
 
-    # Writes the site: the static shell from site_dir, the static data files,
-    # then the released files. out_dir must not exist yet, so that a failed
-    # release never leaves a half-written site behind.
-    def write(out_dir, site_dir:, data_dir:)
+    # Writes the site: the static pages from site_dir, the static data files,
+    # the released files, and a copy of templates_dir/selection.html for each
+    # current selection. out_dir must not exist yet, so that a failed release
+    # never leaves a half-written site behind.
+    def write(out_dir, site_dir:, data_dir:, templates_dir:)
       raise ArgumentError, "#{out_dir} already exists" if File.exist?(out_dir)
 
       staging = "#{out_dir}.partial"
@@ -107,10 +108,10 @@ module Sweepers
         FileUtils.mkdir_p(File.dirname(target))
         File.write(target, content)
       end
-      selection_shell = File.join(site_dir, 'selection.html')
+      selection_template = File.join(templates_dir, 'selection.html')
       selections.each do |selection|
         FileUtils.mkdir_p(File.join(staging, 'selection'))
-        FileUtils.cp(selection_shell, File.join(staging, 'selection', "#{selection.leaf.day_of_year}.html"))
+        FileUtils.cp(selection_template, File.join(staging, 'selection', "#{selection.leaf.day_of_year}.html"))
       end
       File.rename(staging, out_dir)
     end

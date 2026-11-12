@@ -84,14 +84,14 @@ AGE_SECRET_KEY=<secret> bin/release data/queue _site [--date YYYY-MM-DD] [--base
 | `release.json` | `{"date": "2026-11-12", "day_of_year": 317, "yesterday": {"date": "2026-11-11", "day_of_year": 316}, "released_at": "…Z"}`. Pages use `date` as the cap on the reader's date (see below) |
 | `leaves/<day>.json` | `{"day_of_year": 317, "html": "…"}` for today, yesterday, the day before yesterday and each selection that has a leaf. A day with no leaf has no file, and the page shows its date over an empty leaf |
 | `selections.json` | Up to 7 entries, newest first: `[{"day_of_year": 314, "date": "2026-11-09", "snippet": "…"}]`. `date` is the most recent date that day fell on, for display |
-| `selection/<day>.html` | A copy of `site/selection.html` for each current selection (Pages can't route paths dynamically) |
+| `selection/<day>.html` | A copy of `templates/selection.html` for each current selection (Pages can't route paths dynamically) |
 | `sitemap.txt` | `https://` URLs for `/today`, `/yesterday`, `/selections` and each `/selection/<day>` |
 | `mountweazel.json` | `{"html": "…"}`, copied from `data/mountweazel.json` |
 | everything in `site/` | The static pages and assets |
 
 ### Pages and the reader's date
 
-Pages show **the reader's local date, capped at `release.json`'s date** (`site/assets/javascripts/sweepers.js`, decided in #70):
+Pages show **the reader's local date, capped at `release.json`'s date** (`site/assets/javascripts/calendar.js`, decided in #70):
 - **West of UTC (the Americas):** the reader's own date, all day. It's never after the release date.
 - **East of UTC (Europe, Asia, Australia):** their new day starts before the release runs. Until it does, pages show the release date and its leaf.
 - **A late release** keeps everyone on the last released date.
