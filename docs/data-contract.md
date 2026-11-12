@@ -85,7 +85,9 @@ AGE_SECRET_KEY=<secret> bin/release data/queue _site [--date YYYY-MM-DD] [--base
 | `leaves/<day>.json` | `{"day_of_year": 317, "html": "…"}` for today, yesterday, the day before yesterday and each selection that has a leaf. A day with no leaf has no file, and the page shows its date over an empty leaf |
 | `selections.json` | Up to 7 entries, newest first: `[{"day_of_year": 314, "date": "2026-11-09", "snippet": "…"}]`. `date` is the most recent date that day fell on, for display |
 | `selection/<day>.html` | A copy of `templates/selection.html` for each current selection (Pages can't route paths dynamically) |
-| `sitemap.txt` | `https://` URLs for `/today`, `/yesterday`, `/selections` and each `/selection/<day>` |
+| `sitemap.txt` | `https://` URLs for `/today`, `/yesterday`, `/selections` and each `/selection/<day>`, under `--base-url` |
+| `robots.txt` | Allows all crawlers, with a `Sitemap:` line pointing to `sitemap.txt` |
+| `404.html` | `templates/404.html`, with its `<base href>` set to the path of `--base-url` (`/sweepers-publisher/` on staging, `/` at a domain root). Pages serves it for a missing path at any depth, so its relative links must resolve from the site root, not from the missing path. It shows "Page **<path>** not found." |
 | `mountweazel.json` | `{"html": "…"}`, copied from `data/mountweazel.json` |
 | everything in `site/` | The static pages and assets |
 
@@ -113,6 +115,15 @@ These follow Flask's `Leaf.selections`:
 ## The mountweazel
 
 The fictitious entry was hard-coded in Flask (`Leaf.mountweazel`), not published by the editor. It lives here as `data/mountweazel.json`, copied from the live site's `/mountweazel.json`. It's not part of the queue.
+
+- `/mountweazel.json` serves it as is.
+- `/mountweazel` and `/calendar/mountweazel` (`site/mountweazel.html`, `site/calendar/mountweazel.html`) show it like any leaf, dated **22 May of the reader's current year**. That's Flask's stored day (`datetime(2004, 5, 22)`), shown in the current year as Flask did, so the live site showed "Friday, 22 May 2026".
+
+## The base URL
+
+`--base-url` (default `Sweepers::Release::DEFAULT_BASE_URL`, the staging URL `https://newpoete.github.io/sweepers-publisher`) is the one place the site's address is set. It goes into `sitemap.txt`, `robots.txt` and the 404 page's `<base>`. The cutover (Epic 4) changes it to the final domain.
+
+Crawlers only read `robots.txt` at a domain's root, so on staging (under `/sweepers-publisher/`) it has no effect until the custom domain.
 
 ## Fixtures
 

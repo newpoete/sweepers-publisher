@@ -5,6 +5,7 @@ require 'date'
 require 'fileutils'
 require 'json'
 require 'time'
+require 'uri'
 require_relative 'calendar'
 
 module Sweepers
@@ -88,12 +89,13 @@ module Sweepers
         files["leaves/#{leaf.day_of_year}.json"] = json(leaf_record(leaf))
       end
       files['sitemap.txt'] = sitemap
+      files['robots.txt'] = robots
       files
     end
 
     # Writes the site: the static pages from site_dir, the static data files,
-    # the released files, and a copy of templates_dir/selection.html for each
-    # current selection. out_dir must not exist yet, so that a failed release
+    # the released files, a copy of templates_dir/selection.html for each
+    # current selection, and 404.html from templates_dir/404.html. out_dir must not exist yet, so that a failed release
     # never leaves a half-written site behind.
     def write(out_dir, site_dir:, data_dir:, templates_dir:)
       raise ArgumentError, "#{out_dir} already exists" if File.exist?(out_dir)
@@ -113,7 +115,15 @@ module Sweepers
         FileUtils.mkdir_p(File.join(staging, 'selection'))
         FileUtils.cp(selection_template, File.join(staging, 'selection', "#{selection.leaf.day_of_year}.html"))
       end
+      File.write(File.join(staging, '404.html'), not_found_page(File.read(File.join(templates_dir, '404.html'))))
       File.rename(staging, out_dir)
+    end
+
+    # The 404 page, its <base> set to the site root's path ("/sweepers-publisher"
+    # on staging, "" at a domain root). Pages serves 404.html for a missing path
+    # at any depth, so its relative links can't depend on where it's served.
+    def not_found_page(template)
+      template.gsub('{{base_path}}', URI(base_url).path)
     end
 
     # Jinja2 2.8's striptags + truncate(300), as used by Flask's selections page:
@@ -156,6 +166,10 @@ module Sweepers
     def sitemap
       paths = %w[today yesterday selections] + selections.map { |s| "selection/#{s.leaf.day_of_year}" }
       paths.map { |path| "#{base_url}/#{path}\n" }.join
+    end
+
+    def robots
+      "User-agent: *\nDisallow:\n\nSitemap: #{base_url}/sitemap.txt\n"
     end
 
     def json(data)

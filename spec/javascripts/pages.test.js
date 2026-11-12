@@ -29,3 +29,10 @@ describe('Pages.findSelection', () => {
     assert.equal(Pages.findSelection(selections, 300), null);
   });
 });
+
+describe('Pages.mountweazelDate', () => {
+  it("dates the mountweazel 22 May of the given date's year, as Flask did", () => {
+    assert.deepEqual(Pages.mountweazelDate({ year: 2026, month: 11, day: 12 }), { year: 2026, month: 5, day: 22 });
+    assert.deepEqual(Pages.mountweazelDate({ year: 2027, month: 1, day: 1 }), { year: 2027, month: 5, day: 22 });
+  });
+});

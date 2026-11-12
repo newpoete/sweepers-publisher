@@ -7,6 +7,8 @@
  *   today, yesterday  the leaf for the date shown (see calendar.js)
  *   selections        the selections list
  *   selection         one selection, its day read from the URL
+ *   mountweazel       the fictitious entry, dated 22 May of the reader's year
+ *   not-found         the 404 page: names the missing path
  *
  * Needs calendar.js loaded first (window.SweepersCalendar). The pure helpers
  * are exported for Node (spec/javascripts/pages.test.js).
@@ -37,6 +39,15 @@
       if (selections[i].day_of_year === day) { return selections[i]; }
     }
     return null;
+  }
+
+  // Flask's mountweazel was stored as 22 May (Leaf.mountweazel) and, like
+  // every leaf, shown in the current year.
+  var MOUNTWEAZEL_MONTH = 5;
+  var MOUNTWEAZEL_DAY = 22;
+
+  function mountweazelDate(today) {
+    return Calendar.calendarDate(today.year, MOUNTWEAZEL_MONTH, MOUNTWEAZEL_DAY);
   }
 
   // Data: JSON relative to the site root; null when the file doesn't exist.
@@ -145,11 +156,28 @@
     }).catch(function () { showError(doc, 'leaf-text', 'The leaf'); });
   }
 
+  function renderMountweazelPage(page, doc, win, rootPath) {
+    getJson(rootPath, 'mountweazel.json').then(function (leaf) {
+      if (!leaf) { throw new Error('mountweazel.json missing'); }
+      showLeaf(doc, mountweazelDate(Calendar.localDate(new Date())), leaf);
+    }).catch(function () { showError(doc, 'leaf-text', 'The leaf'); });
+  }
+
+  // "Page <strong>/the/path</strong> not found.", as Flask's 404 page.
+  function renderNotFoundPage(page, doc, win) {
+    var message = doc.getElementById('not-found');
+    message.textContent = 'Page ';
+    message.appendChild(element(doc, 'strong', null, win.location.pathname));
+    message.appendChild(doc.createTextNode(' not found.'));
+  }
+
   var RENDERERS = {
     today: renderLeafPage,
     yesterday: renderLeafPage,
     selections: renderSelectionsPage,
-    selection: renderSelectionPage
+    selection: renderSelectionPage,
+    mountweazel: renderMountweazelPage,
+    'not-found': renderNotFoundPage
   };
 
   function start(doc, win) {
@@ -159,5 +187,8 @@
     if (RENDERERS[page]) { RENDERERS[page](page, doc, win, rootPath); }
   }
 
-  return { selectionDayFromPath: selectionDayFromPath, findSelection: findSelection, start: start };
+  return {
+    selectionDayFromPath: selectionDayFromPath, findSelection: findSelection, mountweazelDate: mountweazelDate,
+    start: start
+  };
 });
