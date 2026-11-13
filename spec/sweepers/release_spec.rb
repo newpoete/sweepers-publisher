@@ -120,6 +120,11 @@ RSpec.describe Sweepers::Release do
       expect(sitemap).to eq(expected)
     end
 
+    it 'writes robots.txt allowing all crawlers and pointing to the sitemap' do
+      robots = release_on('2026-11-12').files['robots.txt']
+      expect(robots).to eq("User-agent: *\nDisallow:\n\nSitemap: #{described_class::DEFAULT_BASE_URL}/sitemap.txt\n")
+    end
+
     context 'when a selection has a snippet' do
       it 'uses the snippet instead of the leaf text' do
         leaf = build_leaf(316, score: 9, html: '<p>full text</p>', snippet: 'short')
@@ -128,9 +133,9 @@ RSpec.describe Sweepers::Release do
     end
 
     context 'when the queue is empty' do
-      it 'writes only release.json, an empty selections.json and the sitemap' do
+      it 'writes only release.json, an empty selections.json, the sitemap and robots.txt' do
         files = release_on('2026-11-12').files
-        expect(files.keys).to contain_exactly('release.json', 'selections.json', 'sitemap.txt')
+        expect(files.keys).to contain_exactly('release.json', 'selections.json', 'sitemap.txt', 'robots.txt')
         expect(JSON.parse(files['selections.json'])).to eq([])
       end
     end
@@ -142,10 +147,11 @@ RSpec.describe Sweepers::Release do
         out = File.join(dir, 'site')
         release_on('2026-11-12', build_leaf(314, score: 10), build_leaf(317))
           .write(out, site_dir: File.join(ROOT, 'site'), data_dir: File.join(ROOT, 'data'), templates_dir: File.join(ROOT, 'templates'))
-        paths = %w[release.json selections.json sitemap.txt mountweazel.json leaves/314.json leaves/317.json
-                   selection/314.html selections.html today.html]
+        paths = %w[release.json selections.json sitemap.txt robots.txt mountweazel.json leaves/314.json leaves/317.json
+                   selection/314.html selections.html today.html mountweazel.html calendar/mountweazel.html 404.html]
         expect(paths.reject { |path| File.exist?(File.join(out, path)) }).to be_empty
         expect(File.exist?(File.join(out, 'selection.html'))).to be(false)
+        expect(File.read(File.join(out, '404.html'))).to include('<base href="/sweepers-publisher/">')
         expect(File.exist?("#{out}.partial")).to be(false)
       end
     end
@@ -158,6 +164,16 @@ RSpec.describe Sweepers::Release do
             .to raise_error(ArgumentError, /already exists/)
         end
       end
+    end
+  end
+
+  describe '#not_found_page' do
+    it "sets the page's base to the site root's path from the base URL" do
+      template = '<base href="{{base_path}}/">'
+      staging = described_class.new([], date: Date.new(2026, 11, 12), base_url: 'https://newpoete.github.io/sweepers-publisher/')
+      domain = described_class.new([], date: Date.new(2026, 11, 12), base_url: 'https://sweeperscalendar.com')
+      expect(staging.not_found_page(template)).to eq('<base href="/sweepers-publisher/">')
+      expect(domain.not_found_page(template)).to eq('<base href="/">')
     end
   end
 
