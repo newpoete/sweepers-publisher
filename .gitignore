@@ -5,6 +5,11 @@
 age-key.txt
 key.txt
 identity.txt
+age-identity*.txt
+# Deploy keys (Epic 3: the editor pushes with one; it never belongs in a repo)
+deploy_key*
+id_ed25519*
+id_rsa*
 .env
 .env.*
 
@@ -12,6 +17,8 @@ identity.txt
 queue.json
 *.decrypted.json
 *.plain.json
+# Flask Datastore exports (Epic 3): every leaf, future ones included. Kept in ~/archives.
+*datastore*.json*
 
 # Local release output (the Action builds it; never commit it).
 _site/
