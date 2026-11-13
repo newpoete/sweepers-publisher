@@ -53,6 +53,36 @@ bin/fixtures                                # regenerate spec/fixtures/queue/
 
 The fixture key is committed on purpose because it protects nothing. A real release reads its key from `AGE_SECRET_KEY` instead. See [`docs/data-contract.md`](docs/data-contract.md) for the queue format and every released file.
 
+## Daily release
+
+`.github/workflows/release.yml` releases the queue for today's date (UTC) and deploys the site to GitHub Pages. It runs:
+- **every day at 00:07 UTC**, off the top of the hour, when GitHub's schedules are busiest;
+- **on every push to `main`**;
+- **by hand**, with no inputs.
+
+Until a release runs, the previous release stays deployed, so the previous day's leaf stays up. **Scheduled runs can start late:** often by minutes, and sometimes by an hour or more under load.
+
+The private key is the `AGE_SECRET_KEY` Actions secret. Until Epic 3, the workflow releases the fixture queue (`spec/fixtures/queue/`), so the secret holds the **fixture** identity. Epic 3 replaces it with a real key and switches `QUEUE_DIR` to `data/queue`.
+
+```bash
+gh workflow run release.yml                              # release and deploy now
+gh run list --workflow release.yml --limit 5             # recent runs and their status
+gh run view --log-failed <run-id>                        # why a run failed
+gh secret set AGE_SECRET_KEY < <identity-file>           # set or replace the key, never echoed
+```
+
+You can also run it from the repo's **Actions** tab: **Release**, then **Run workflow**.
+
+**When a release fails,** the run turns red. GitHub emails the account that last changed the workflow's `cron` line. Nothing is deployed, and the previous release stays up. There's deliberately no date input, since releasing a later date would publish tomorrow's leaf.
+
+### Keep-alive
+
+GitHub disables scheduled workflows in a public repo after **60 days with no repository activity**. The scheduled run's `keepalive` job checks the date of the last commit. If it's 50 days or more, the job pushes an empty commit ("Keep the daily release schedule alive") to `main`. Pushes made with the workflow's own token don't trigger workflows, so this doesn't start a second release.
+
+- **Once the editor publishes (Epic 3),** its commits keep the repo active, and the job does nothing.
+- **Why a commit and not the API:** GitHub's docs don't say whether re-enabling a workflow through the API resets the 60 days, but a commit is unambiguous activity.
+- **If schedules are disabled anyway,** the Actions tab shows a banner. Re-enable with `gh workflow enable release.yml`.
+
 ## Licenses
 
 - **Content** (the aphorisms and site text): [Creative Commons Attribution-NonCommercial-ShareAlike 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), as on the original site. See `LICENSE-CONTENT`.
