@@ -135,3 +135,23 @@ div.selection div.foot {
   font-size: 16px;
   text-align: right;
 }
+
+/*
+ * A day with no leaf (added by the publisher, sweepers-editor#83)
+ */
+#leaf-text blockquote.leaf-empty {
+  border: 0;
+  margin: 1.5em 0 0; /* more room under the date than a leaf gets */
+  padding: 0;
+  font-size: 20px;
+  font-style: italic;
+  text-align: center;
+}
+
+#leaf-text blockquote.leaf-empty footer {
+  margin-top: 0.5em;
+  padding-left: 4em; /* centered, then nudged right */
+  font-size: 16px;
+  font-style: normal;
+  color: #978282;
+}

@@ -50,6 +50,20 @@
     return Calendar.calendarDate(today.year, MOUNTWEAZEL_MONTH, MOUNTWEAZEL_DAY);
   }
 
+  // What the leaf card shows for a day with no leaf (no leaves/<day>.json),
+  // chosen by the owner (sweepers-editor#83). A leaf that fails to load shows
+  // showError's message instead.
+  var EMPTY_LEAF_HTML =
+    '<blockquote class="leaf-empty">' +
+      '<p>Whereof one cannot speak, thereof one must be silent.</p>' +
+      '<footer>Ludwig Wittgenstein, <cite>Tractatus Logico-Philosophicus</cite></footer>' +
+    '</blockquote>';
+
+  // The leaf card's HTML: the leaf's own, or the empty-day message.
+  function leafHtml(leaf) {
+    return leaf ? leaf.html : EMPTY_LEAF_HTML;
+  }
+
   // Data: JSON relative to the site root; null when the file doesn't exist.
 
   function getJson(rootPath, path) {
@@ -71,7 +85,7 @@
     heading.querySelector('.year').textContent = parts.year;
     heading.hidden = false;
     // Leaf HTML comes from the editor and is trusted, as Flask's `| safe` was.
-    doc.getElementById('leaf-text').innerHTML = leaf ? leaf.html : '';
+    doc.getElementById('leaf-text').innerHTML = leafHtml(leaf);
     doc.title = Calendar.title(date);
   }
 
@@ -189,6 +203,6 @@
 
   return {
     selectionDayFromPath: selectionDayFromPath, findSelection: findSelection, mountweazelDate: mountweazelDate,
-    start: start
+    leafHtml: leafHtml, start: start
   };
 });
