@@ -110,6 +110,6 @@ Checked on 2026-11-13:
 | Pull requests from forks | `test.yml` runs with a read-only token and no secrets. `release.yml` doesn't run on pull requests. First-time contributors need approval to run any workflow |
 | Secrets | `AGE_SECRET_KEY` only, holding the fixture identity until Epic 3 |
 | `github-pages` environment | Deploys from `main` only |
-| GitHub Apps with access | _Pending_: the API doesn't list them for this token. Check by hand at <https://github.com/settings/installations> |
+| GitHub Apps and OAuth apps | Checked by the owner at <https://github.com/settings/installations> and the authorized apps list: the only one is **GitHub CLI**, an authorized OAuth app. It's the owner's own `gh` login on the owner's machine, so it acts as the owner, with the owner's access, not as a separate writer. Revoking it would only log `gh` out. The API doesn't list these for this token, so the check is manual |
 
 In Epic 3, the editor publishes by pushing from the owner's machine. A deploy key that can write to this repo only is the suggested credential. Add it to this table when it exists.
