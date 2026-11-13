@@ -23,7 +23,7 @@ Neither Flask nor the editor has holiday handling: the editor's `holidays` table
 | Path | `data/queue/<ddd>.age`: **one file per day of year**, `001.age` to `366.age`, committed by the editor (Epic 3) |
 | Publishing | Writing a day's leaf **overwrites** that day's file. The queue never holds more than 366 files |
 | Encryption | [age](https://age-encryption.org) v1, X25519 recipient, ASCII-armored (`age --encrypt --armor --recipients-file <file>`) |
-| Public key | Committed in `config/recipients.txt` (Epic 3). The editor only ever needs this key. The fixture key is `spec/fixtures/fixture-recipient.txt` |
+| Public key | Committed in `config/recipients.txt` (2026-11-13, sweepers-editor#93). The editor only ever needs this key. The fixture key is `spec/fixtures/fixture-recipient.txt` |
 | Private key | Only in the `AGE_SECRET_KEY` Actions secret, plus an offline backup. Never in the repo, the editor, issues or logs |
 | Plaintext | One UTF-8 JSON object per file, as below |
 
