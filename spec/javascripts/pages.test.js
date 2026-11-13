@@ -36,3 +36,18 @@ describe('Pages.mountweazelDate', () => {
     assert.deepEqual(Pages.mountweazelDate({ year: 2027, month: 1, day: 1 }), { year: 2027, month: 5, day: 22 });
   });
 });
+
+describe('Pages.leafHtml', () => {
+  it("returns the leaf's own HTML", () => {
+    assert.equal(Pages.leafHtml({ day_of_year: 318, html: '<p>leaf</p>' }), '<p>leaf</p>');
+  });
+
+  describe('when the day has no leaf', () => {
+    it('returns the Wittgenstein line, attributed', () => {
+      const html = Pages.leafHtml(null);
+      assert.match(html, /<p>Whereof one cannot speak, thereof one must be silent\.<\/p>/);
+      assert.match(html, /Ludwig Wittgenstein, <cite>Tractatus Logico-Philosophicus<\/cite>/);
+      assert.doesNotMatch(html, /could not be loaded/);
+    });
+  });
+});
