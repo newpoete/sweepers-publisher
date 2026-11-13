@@ -69,6 +69,13 @@ RSpec.describe 'Site pages' do
     end
   end
 
+  describe 'navbar links' do
+    it "link only to the site's own pages, not the old blog or Twitter (sweepers-editor#84)" do
+      offsite = page_paths.select { |path| page(path).match?(/blogspot|twitter\.com|navbar-right/) }
+      expect(offsite).to be_empty
+    end
+  end
+
   describe 'scripts' do
     it 'loads calendar.js before pages.js, which needs it' do
       page_paths.each do |path|
