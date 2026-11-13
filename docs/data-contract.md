@@ -117,7 +117,8 @@ These follow Flask's `Leaf.selections`:
 The fictitious entry was hard-coded in Flask (`Leaf.mountweazel`), not published by the editor. It lives here as `data/mountweazel.json`, copied from the live site's `/mountweazel.json`. It's not part of the queue.
 
 - `/mountweazel.json` serves it as is.
-- `/mountweazel` and `/calendar/mountweazel` (`site/mountweazel.html`, `site/calendar/mountweazel.html`) show it like any leaf, dated **22 May of the reader's current year**. That's Flask's stored day (`datetime(2004, 5, 22)`), shown in the current year as Flask did, so the live site showed "Friday, 22 May 2026".
+- `/mountweazel` (`site/mountweazel.html`) shows it like any leaf, dated **22 May of the reader's current year**. That's Flask's stored day (`datetime(2004, 5, 22)`), shown in the current year as Flask did, so the live site showed "Friday, 22 May 2026".
+- `/calendar/mountweazel` redirects to `/mountweazel` (#85). The live site served the same page at both, and GitHub Pages can't send a 301. So `site/calendar/mountweazel.html` is a small page with a meta refresh, `location.replace()` (which keeps it out of the history), a canonical link, `noindex`, and a plain link as a fallback.
 
 ## The base URL
 

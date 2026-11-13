@@ -5,8 +5,7 @@
 RSpec.describe 'Site pages' do
   def page_paths
     %w[site/index.html site/today.html site/yesterday.html site/calendar/index.html
-       site/selections.html site/mountweazel.html site/calendar/mountweazel.html
-       templates/selection.html templates/404.html]
+       site/selections.html site/mountweazel.html templates/selection.html templates/404.html]
   end
 
   def page(path)
@@ -41,7 +40,6 @@ RSpec.describe 'Site pages' do
       expect(page('selections.html')).to include('data-page="selections" data-root="."')
       expect(page('templates/selection.html')).to include('data-page="selection" data-root=".."')
       expect(page('mountweazel.html')).to include('data-page="mountweazel" data-root="."')
-      expect(page('calendar/mountweazel.html')).to include('data-page="mountweazel" data-root=".."')
       expect(page('templates/404.html')).to include('data-page="not-found" data-root="."')
     end
   end
@@ -51,8 +49,7 @@ RSpec.describe 'Site pages' do
       expect(page('today.html')).to include('<li class="active"><a href="today">Today</a></li>')
       expect(page('yesterday.html')).to include('<li class="active"><a href="yesterday">Yesterday</a></li>')
       expect(page('selections.html')).to include('<li class="active"><a href="selections">Selections</a></li>')
-      %w[index.html calendar/index.html mountweazel.html calendar/mountweazel.html
-         templates/selection.html templates/404.html].each do |path|
+      %w[index.html calendar/index.html mountweazel.html templates/selection.html templates/404.html].each do |path|
         expect(page(path)).not_to include('class="active"'), path
       end
     end
@@ -64,7 +61,6 @@ RSpec.describe 'Site pages' do
                                                      'src="../assets/javascripts/calendar.js"')
       expect(page('today.html')).to include('href="assets/stylesheets/sweepers.css"', 'src="assets/javascripts/pages.js"')
       expect(page('templates/selection.html')).to include('href="../assets/stylesheets/sweepers.css"', 'href="../selections"')
-      expect(page('calendar/mountweazel.html')).to include('href="../assets/stylesheets/sweepers.css"', 'href="../today"')
       expect(pages_with_root_absolute_links).to be_empty
     end
   end
@@ -100,10 +96,13 @@ RSpec.describe 'Site pages' do
     end
   end
 
-  describe 'mountweazel pages' do
-    it 'are the same page at /mountweazel and /calendar/mountweazel' do
-      from_calendar = page('calendar/mountweazel.html').gsub('href="../"', 'href="./"').gsub('"../', '"')
-      expect(from_calendar.sub('data-root=".."', 'data-root="."')).to eq(page('mountweazel.html'))
+  describe 'calendar mountweazel page' do
+    it 'redirects to /mountweazel, with a link if the redirect fails (sweepers-editor#85)' do
+      expect(page('calendar/mountweazel.html')).to include(
+        '<meta http-equiv="refresh" content="0; url=../mountweazel">', '<link rel="canonical" href="../mountweazel">',
+        '<meta name="robots" content="noindex">', "window.location.replace('../mountweazel'",
+        '<a href="../mountweazel">'
+      )
     end
   end
 
