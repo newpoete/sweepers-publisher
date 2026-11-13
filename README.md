@@ -34,6 +34,8 @@ This repo is **public**. Never commit, or paste into issues, PRs or logs:
 
 The age **public** key isn't secret. `.gitignore` covers the usual file names, but check `git status` before committing anyway.
 
+**Push access is what protects the site, not encryption.** Anyone can encrypt a leaf to the public key. Encryption only keeps tomorrow's leaf secret; it can't say who wrote a file. Whatever is pushed to `main` gets published. So keep write access to the owner and, from Epic 3, the editor's single push credential (a deploy key for this repo only is suggested). Review collaborators, deploy keys and installed GitHub Apps when anything changes. [`docs/parity-check.md`](docs/parity-check.md) records the last review.
+
 ## Local development
 
 You need Ruby (`.ruby-version` says 3.4, and 3.3 works), Bundler, and the [age](https://age-encryption.org) CLI (`sudo apt install age` on Ubuntu or Debian). The publisher itself uses only Ruby's standard library; the Gemfile is for RSpec.
