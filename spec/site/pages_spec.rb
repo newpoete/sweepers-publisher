@@ -84,8 +84,20 @@ RSpec.describe 'Site pages' do
   describe 'CDN assets' do
     it 'carry an integrity hash and crossorigin, except Google Fonts (sweepers-editor#87)' do
       tags = cdn_asset_tags
-      expect(tags.size).to eq(24) # 3 on each of the 8 pages and templates
+      expect(tags.size).to eq(32) # 4 on each of the 8 pages and templates
       expect(tags.reject { |_, tag| tag.match?(/ integrity="sha384-[A-Za-z0-9+\/]{64}" crossorigin="anonymous"/) }).to be_empty
+    end
+  end
+
+  describe 'GoatCounter' do
+    it 'counts page views on sweeperscalendar.com only, on every page and template (sweepers-editor#107)' do
+      guard = "<script>if (window.location.hostname !== 'sweeperscalendar.com') window.goatcounter = {no_onload: true};</script>"
+      counter = '<script data-goatcounter="https://sweeperscalendar.goatcounter.com/count" async src="https://gc.zgo.at/count.v5.js"'
+      page_paths.each do |path|
+        html = page(path)
+        expect(html.scan('data-goatcounter=').size).to eq(1), path
+        expect(html.index(guard)).to be < html.index(counter), path
+      end
     end
   end
 

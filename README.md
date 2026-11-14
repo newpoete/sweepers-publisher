@@ -45,9 +45,12 @@ bundle install
 bundle exec rspec                           # Ruby specs (CI runs both on every push and PR)
 node --test spec/javascripts/*.test.js               # page script specs (Node 18+, no packages)
 
-# Release the fixture queue into a new folder, then serve it. Its leaves sit around
-# 2026-11-12, so other dates mostly show the empty-day line. --base-url sets the 404
-# page's <base>; without it, the 404 page looks for its stylesheets under /sweepers-publisher/.
+# Preview: release the fixture queue into tmp/preview/ and serve it, in one step.
+bundle exec bin/preview                     # http://localhost:8000/today; Ctrl-C to stop
+
+# Or the same by hand, into a new folder. The fixture leaves sit around 2026-11-12, so
+# other dates mostly show the empty-day line. --base-url sets the 404 page's <base>;
+# without it, the 404 page looks for its stylesheets under /sweepers-publisher/.
 bin/release spec/fixtures/queue tmp/site --date 2026-11-12 \
   --identity spec/fixtures/fixture-identity.txt --base-url http://localhost:8000
 bundle exec bin/serve tmp/site              # http://localhost:8000, served like GitHub Pages
@@ -86,6 +89,14 @@ GitHub disables scheduled workflows in a public repo after **60 days with no rep
 - **Once the editor publishes (Epic 3),** its commits keep the repo active, and the job does nothing.
 - **Why a commit and not the API:** GitHub's docs don't say whether re-enabling a workflow through the API resets the 60 days, but a commit is unambiguous activity.
 - **If schedules are disabled anyway,** the Actions tab shows a banner. Re-enable with `gh workflow enable release.yml`.
+
+## Analytics
+
+Every page loads [GoatCounter](https://www.goatcounter.com) (sweepers-editor#107). It sets no cookies and collects no personal data, so there's no consent banner.
+- **Only on the domain:** a small inline script sets GoatCounter's `no_onload` unless the host is `sweeperscalendar.com`. The staged site and local copies load the script but never count.
+- **Pinned version:** the script is the versioned `count.v5.js`, with the integrity hash GoatCounter publishes ([versions](https://www.goatcounter.com/help/countjs-versions)), so it never changes under us.
+- **If it's blocked,** by an ad blocker or an outage, the page works as usual.
+- **The dashboard** is at `https://sweeperscalendar.goatcounter.com`, under the owner's account. To keep your own visits out of the counts, open any page with `#toggle-goatcounter` added to its URL.
 
 ## Licenses
 
