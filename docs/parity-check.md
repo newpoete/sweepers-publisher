@@ -77,9 +77,11 @@ The first scheduled release runs at 00:07 UTC on 14 November (4:07 pm Pacific on
 
 | Check | Result |
 |---|---|
-| The scheduled run starts, and when | _Pending_ |
-| `release.json` turns to 2026-11-14 | _Pending_ |
-| A reader east of UTC (Tokyo) sees 14 November after the release, not before | _Pending_ |
+| The scheduled run starts, and when | Pass, late. Run 43537595255 (`schedule`) started at 00:57:57 UTC, 51 minutes after its 00:07 cron time, and succeeded. Release finished 00:58:18, deploy 00:58:31 |
+| `release.json` turns to 2026-11-14 | Pass. The run's log: "Released 2026-11-14 (day 319)". The live `release.json` showed `"date": "2026-11-14"`, `"day_of_year": 319` at 02:16 UTC, after the backfill push's run (02:09) redeployed it |
+| A reader east of UTC (Tokyo) sees 14 November after the release, not before | Pass. After: headless Chrome with `TZ=Asia/Tokyo` at 11:17 JST showed `/today` as "14th of November" and `/yesterday` as "13th of November". Before: the window had passed, so `calendar.js` ran under `TZ=Asia/Tokyo` for 00:30 and 00:57 UTC (09:30 and 09:57 JST on the 14th) with the 13th's release. It showed today as 13 November, then 14 November at 00:59 with the 14th's release |
+
+GitHub starts scheduled runs late when it's busy; this one was 51 minutes late. Readers east of UTC see the previous day for that long, which is the designed behavior (the page caps the date at the release). A push to `main` also releases, so a late schedule never holds back a publish.
 
 ## Leaks
 
