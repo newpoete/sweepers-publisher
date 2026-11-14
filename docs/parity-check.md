@@ -65,7 +65,7 @@ Fonts, colors, the card, spacing and the phone layout are identical.
 | **A day with no leaf** shows the Wittgenstein line. Live, it never happened | Intended ([#83](https://github.com/newpoete/sweepers-editor/issues/83)) |
 | **No `score-N` classes** on selections. They had no style, so nothing showed | Intended (parity README, point 3) |
 | **`https://` sitemap and robots** | Intended ([#72](https://github.com/newpoete/sweepers-editor/issues/72)) |
-| **No analytics.** The live Universal Analytics property is dead | Intended. Decided at cutover ([#88](https://github.com/newpoete/sweepers-editor/issues/88)) |
+| **No analytics.** The live Universal Analytics property is dead | Intended. GoatCounter added in [#107](https://github.com/newpoete/sweepers-editor/issues/107); it counts only on the domain, from the cutover on |
 | **The `/sweepers-publisher/` prefix** in URLs and the 404 message | Staging only. Gone at the domain root ([#88](https://github.com/newpoete/sweepers-editor/issues/88)) |
 | **`http://` redirects with 301**, not 302 | Accepted: Pages' own redirect, and the better code for a permanent move |
 | **Every file is cached for 10 minutes** (`Cache-Control: max-age=600`), pages and `release.json` included. Live, only robots.txt was | Accepted: a reader who loaded the site in the 10 minutes before a release may see the previous day for up to 10 more minutes. Re-checked at cutover ([#88](https://github.com/newpoete/sweepers-editor/issues/88)) |

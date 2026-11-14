@@ -87,6 +87,14 @@ GitHub disables scheduled workflows in a public repo after **60 days with no rep
 - **Why a commit and not the API:** GitHub's docs don't say whether re-enabling a workflow through the API resets the 60 days, but a commit is unambiguous activity.
 - **If schedules are disabled anyway,** the Actions tab shows a banner. Re-enable with `gh workflow enable release.yml`.
 
+## Analytics
+
+Every page loads [GoatCounter](https://www.goatcounter.com) (sweepers-editor#107). It sets no cookies and collects no personal data, so there's no consent banner.
+- **Only on the domain:** a small inline script sets GoatCounter's `no_onload` unless the host is `sweeperscalendar.com`. The staged site and local copies load the script but never count.
+- **Pinned version:** the script is the versioned `count.v5.js`, with the integrity hash GoatCounter publishes ([versions](https://www.goatcounter.com/help/countjs-versions)), so it never changes under us.
+- **If it's blocked,** by an ad blocker or an outage, the page works as usual.
+- **The dashboard** is at `https://sweeperscalendar.goatcounter.com`, under the owner's account. To keep your own visits out of the counts, open any page with `#toggle-goatcounter` added to its URL.
+
 ## Licenses
 
 - **Content** (the aphorisms and site text): [Creative Commons Attribution-NonCommercial-ShareAlike 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), as on the original site. See `LICENSE-CONTENT`.
