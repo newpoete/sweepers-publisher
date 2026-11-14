@@ -81,6 +81,14 @@ RSpec.describe 'Site pages' do
     end
   end
 
+  describe 'CDN assets' do
+    it 'carry an integrity hash and crossorigin, except Google Fonts (sweepers-editor#87)' do
+      tags = cdn_asset_tags
+      expect(tags.size).to eq(24) # 3 on each of the 8 pages and templates
+      expect(tags.reject { |_, tag| tag.match?(/ integrity="sha384-[A-Za-z0-9+\/]{64}" crossorigin="anonymous"/) }).to be_empty
+    end
+  end
+
   describe 'templates' do
     it 'live outside site/, so they are never published as is' do
       %w[selection.html 404.html].each do |name|
@@ -103,6 +111,17 @@ RSpec.describe 'Site pages' do
         '<meta name="robots" content="noindex">', "window.location.replace('../mountweazel'",
         '<a href="../mountweazel">'
       )
+    end
+  end
+
+  # Every <script> and stylesheet <link> loaded from another host, as [path, tag]. Google Fonts
+  # is left out: it varies its CSS by browser, so it can't have a fixed hash.
+  def cdn_asset_tags
+    Dir[File.join(ROOT, '{site,templates}', '**', '*.html')].flat_map do |path|
+      File.read(path).scan(%r{<(?:script|link)\b[^>]*(?:src|href)="https://[^"]+"[^>]*>})
+          .select { |tag| tag.start_with?('<script') || tag.include?('rel="stylesheet"') }
+          .reject { |tag| tag.include?('fonts.googleapis.com') }
+          .map { |tag| [path.delete_prefix("#{ROOT}/"), tag] }
     end
   end
 

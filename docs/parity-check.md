@@ -69,7 +69,7 @@ Fonts, colors, the card, spacing and the phone layout are identical.
 | **The `/sweepers-publisher/` prefix** in URLs and the 404 message | Staging only. Gone at the domain root ([#88](https://github.com/newpoete/sweepers-editor/issues/88)) |
 | **`http://` redirects with 301**, not 302 | Accepted: Pages' own redirect, and the better code for a permanent move |
 | **Every file is cached for 10 minutes** (`Cache-Control: max-age=600`), pages and `release.json` included. Live, only robots.txt was | Accepted: a reader who loaded the site in the 10 minutes before a release may see the previous day for up to 10 more minutes. Re-checked at cutover ([#88](https://github.com/newpoete/sweepers-editor/issues/88)) |
-| **CDN assets have no integrity hashes** (live didn't either) | Hardening, filed ([#87](https://github.com/newpoete/sweepers-editor/issues/87)) |
+| **CDN assets have no integrity hashes** (live didn't either) | Hardening, done in [#87](https://github.com/newpoete/sweepers-editor/issues/87): Bootstrap and jQuery now carry `sha384` hashes. Google Fonts can't, since its CSS varies by browser |
 
 ## The day boundary
 
