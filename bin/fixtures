@@ -1,18 +1,20 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Regenerates the encrypted fixture queue in spec/fixtures/queue/: one leaf for
-# every day of the year, 001.age to 366.age.
+# Regenerates the encrypted fixture queue in spec/fixtures/queue/: only the
+# leaves the specs need, around the parity date 2026-11-12 (day 317).
 #
 #   bin/fixtures
 #
-# - Each day gets a synthetic leaf. Its editor score is day % 8, so 0 to 7: always
-#   below the selections threshold of 8, so synthetic leaves never become selections.
 # - The leaves the live site showed on 2026-11-12 (today, yesterday and the 7
-#   selections) replace the synthetic ones for their days. They come from the
-#   parity snapshot (spec/fixtures/parity-leaves.json) and were already public.
-# - Only the 7 parity selections score 8 or more (9 or 10), so a release for
-#   2026-11-12 reproduces the live site's selections exactly.
+#   selections) come from the parity snapshot (spec/fixtures/parity-leaves.json)
+#   and were already public. The 7 selections score 9 or 10.
+# - A few synthetic leaves ("Fixture leaf for ...") test the release's rules on
+#   that date: see SYNTHETIC below.
+# - Every other day has no leaf, as a day the editor never published, so the
+#   site shows its empty-day line there.
+#
+# A release for 2026-11-12 reproduces the live site's selections exactly.
 #
 # Every file is encrypted to the fixture recipient. The fixture identity is
 # committed on purpose: it protects nothing and lets anyone run a release.
@@ -32,9 +34,18 @@ def leaf(day, html:, score:)
     'html' => html, 'snippet' => nil, 'score' => score, 'published_at' => '2019-01-01T12:00:00Z' }
 end
 
-leaves = (1..366).to_h do |day|
+# Synthetic leaves by day, with their scores, and what each one tests on 2026-11-12.
+SYNTHETIC = {
+  200 => 10, # 18 July: the best score, but outside the 90-day window, so never a selection
+  300 => 8,  # 26 October: meets the threshold, but the 7 parity selections outrank it
+  310 => 7,  # 5 November: inside the window, below the threshold of 8
+  315 => 5,  # 10 November: the day before yesterday, which the release also writes
+  318 => 10  # 13 November: after the release date, so never released
+}.freeze
+
+leaves = SYNTHETIC.to_h do |day, score|
   label = Sweepers::Calendar.canonical_date(day).strftime('%-d %B')
-  [day, leaf(day, score: day % 8, html: "<p>Fixture leaf for #{label} (day #{day}).</p>\n")]
+  [day, leaf(day, score: score, html: "<p>Fixture leaf for #{label} (day #{day}).</p>\n")]
 end
 JSON.parse(File.read(File.join(fixtures, 'parity-leaves.json')))['leaves'].each do |p|
   leaves[p['day_of_year']] = leaf(p['day_of_year'], html: p['html'], score: p['score'])

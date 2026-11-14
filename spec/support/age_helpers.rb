@@ -9,6 +9,11 @@ module AgeHelpers
     skip 'age CLI not installed'
   end
 
+  # The committed fixture queue (spec/fixtures/queue/), decrypted with the fixture identity.
+  def load_fixture_queue
+    Sweepers::Queue.load(File.join(FIXTURES, 'queue'), File.read(File.join(FIXTURES, 'fixture-identity.txt')))
+  end
+
   # A fresh key pair: [identity (private), recipients file path].
   def generate_age_key(dir)
     identity, = Open3.capture2('age-keygen')
