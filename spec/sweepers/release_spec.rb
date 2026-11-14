@@ -151,7 +151,7 @@ RSpec.describe Sweepers::Release do
                    selection/314.html selections.html today.html mountweazel.html calendar/mountweazel.html 404.html]
         expect(paths.reject { |path| File.exist?(File.join(out, path)) }).to be_empty
         expect(File.exist?(File.join(out, 'selection.html'))).to be(false)
-        expect(File.read(File.join(out, '404.html'))).to include('<base href="/sweepers-publisher/">')
+        expect(File.read(File.join(out, '404.html'))).to include('<base href="/">')
         expect(File.exist?("#{out}.partial")).to be(false)
       end
     end
