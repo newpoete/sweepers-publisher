@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Releases the fixture queue into tmp/preview/ and serves it, in one step:
+#
+#   bundle exec bin/preview [port]    # default 8000, then open http://localhost:8000/today
+#
+# - It releases for the parity date, 2026-11-12, since the fixture leaves sit
+#   around it, with the fixture key.
+# - --base-url is the local address, so the 404 page finds its stylesheets.
+# - tmp/preview/ is replaced on every run. Stop the server with Ctrl-C.
+
+require 'fileutils'
+
+root = File.expand_path('..', __dir__)
+port = Integer(ARGV[0] || 8000)
+site = File.join(root, 'tmp', 'preview')
+
+FileUtils.rm_rf(site)
+system(File.join(root, 'bin', 'release'), File.join(root, 'spec', 'fixtures', 'queue'), site,
+       '--date', '2026-11-12', '--identity', File.join(root, 'spec', 'fixtures', 'fixture-identity.txt'),
+       '--base-url', "http://localhost:#{port}", exception: true)
+puts "Serving #{site} at http://localhost:#{port}/today (Ctrl-C to stop)"
+$stdout.flush # exec replaces this process, which would drop unflushed output
+exec(File.join(root, 'bin', 'serve'), site, port.to_s)

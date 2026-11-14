@@ -45,9 +45,12 @@ bundle install
 bundle exec rspec                           # Ruby specs (CI runs both on every push and PR)
 node --test spec/javascripts/*.test.js               # page script specs (Node 18+, no packages)
 
-# Release the fixture queue into a new folder, then serve it. Its leaves sit around
-# 2026-11-12, so other dates mostly show the empty-day line. --base-url sets the 404
-# page's <base>; without it, the 404 page looks for its stylesheets under /sweepers-publisher/.
+# Preview: release the fixture queue into tmp/preview/ and serve it, in one step.
+bundle exec bin/preview                     # http://localhost:8000/today; Ctrl-C to stop
+
+# Or the same by hand, into a new folder. The fixture leaves sit around 2026-11-12, so
+# other dates mostly show the empty-day line. --base-url sets the 404 page's <base>;
+# without it, the 404 page looks for its stylesheets under /sweepers-publisher/.
 bin/release spec/fixtures/queue tmp/site --date 2026-11-12 \
   --identity spec/fixtures/fixture-identity.txt --base-url http://localhost:8000
 bundle exec bin/serve tmp/site              # http://localhost:8000, served like GitHub Pages
