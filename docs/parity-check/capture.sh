@@ -5,7 +5,9 @@
 #
 #   bash docs/parity-check/capture.sh tmp/parity https://newpoete.github.io/sweepers-publisher
 #
-# Re-run it against https://sweeperscalendar.com after cutover (Epic 4).
+# Re-run against https://sweeperscalendar.com after the cutover (sweepers-editor#88).
+# Headless Chrome maps GoatCounter's host to a dead end, so the capture's own page
+# loads are never counted as visits.
 set -euo pipefail
 OUT=${1:?usage: capture.sh <out-dir> <base-url>}
 BASE=${2:?usage: capture.sh <out-dir> <base-url>}
@@ -47,7 +49,8 @@ fetch selection-missing "$BASE/selection/999" html
 # The rendered DOM of each page, after its script has run.
 for page in today yesterday calendar/ selections mountweazel calendar/mountweazel no-such-page-parity-check ${day:+selection/$day}; do
   name=$(echo "$page" | tr '/' '-' | sed 's/-$//')
-  google-chrome --headless=new --disable-gpu --virtual-time-budget=8000 --dump-dom "$BASE/$page" \
+  google-chrome --headless=new --disable-gpu --virtual-time-budget=8000 \
+    --host-resolver-rules="MAP sweeperscalendar.goatcounter.com 127.0.0.1:9" --dump-dom "$BASE/$page" \
     > "$OUT/dom/$name.html" 2>/dev/null
 done
 echo done

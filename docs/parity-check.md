@@ -2,7 +2,7 @@
 
 The staged site at `https://newpoete.github.io/sweepers-publisher/` compared, route by route, with the parity snapshot of the live Flask site (sweeperscalendar.com, captured 2026-11-12 00:53 UTC). This is the go/no-go for Epic 3, real data ([newpoete/sweepers-editor#74](https://github.com/newpoete/sweepers-editor/issues/74)).
 
-**Verdict: go.** Every route returns the same status and the same content, and the pages look the same at both widths. Each difference is intended, or it can only be settled at cutover and is filed.
+**Verdict: go.** Every route returns the same status and the same content, and the pages look the same at both widths. Each difference is intended, or it can only be settled at cutover and is filed. **Re-checked on the domain after the cutover (2026-11-14): pass**, see [On the domain](#on-the-domain).
 
 ## How it was checked
 
@@ -31,8 +31,8 @@ The staged site at `https://newpoete.github.io/sweepers-publisher/` compared, ro
 | `/sitemap.txt` | 10 `http://` URLs | the same 10 paths, `https://` | Intended ([#72](https://github.com/newpoete/sweepers-editor/issues/72)) |
 | `/robots.txt` | allow all, `SITEMAP: http://…` | allow all, `Sitemap: https://…` | Intended |
 | `/no-such-page-parity-check` | 404, "Page **/no-such-page-parity-check** not found." | 404, "Page **/sweepers-publisher/no-such-page-parity-check** not found." | Path prefix only on staging ([#88](https://github.com/newpoete/sweepers-editor/issues/88)) |
-| `https://www.sweeperscalendar.com/` | 200, served directly | not applicable until cutover | [#88](https://github.com/newpoete/sweepers-editor/issues/88) |
-| `https://sweepers-flask.appspot.com/` | 200, served directly | not applicable | [#88](https://github.com/newpoete/sweepers-editor/issues/88) |
+| `https://www.sweeperscalendar.com/` | 200, served directly | at the domain: 301 → `https://sweeperscalendar.com/` | Intended, see [On the domain](#on-the-domain) |
+| `https://sweepers-flask.appspot.com/` | 200, served directly | not applicable | Keeps serving the frozen Flask app until the App Engine project is deleted ([#110](https://github.com/newpoete/sweepers-editor/issues/110)) |
 
 Page titles match on every page ("Sweepers Calendar for 12th of November", "… Selected Aphorisms", "… for 22nd of May", "Page Not Found").
 
@@ -66,10 +66,36 @@ Fonts, colors, the card, spacing and the phone layout are identical.
 | **No `score-N` classes** on selections. They had no style, so nothing showed | Intended (parity README, point 3) |
 | **`https://` sitemap and robots** | Intended ([#72](https://github.com/newpoete/sweepers-editor/issues/72)) |
 | **No analytics.** The live Universal Analytics property is dead | Intended. GoatCounter added in [#107](https://github.com/newpoete/sweepers-editor/issues/107); it counts only on the domain, from the cutover on |
-| **The `/sweepers-publisher/` prefix** in URLs and the 404 message | Staging only. Gone at the domain root ([#88](https://github.com/newpoete/sweepers-editor/issues/88)) |
+| **The `/sweepers-publisher/` prefix** in URLs and the 404 message | Staging only. Gone at the domain root, checked in [On the domain](#on-the-domain) |
 | **`http://` redirects with 301**, not 302 | Accepted: Pages' own redirect, and the better code for a permanent move |
 | **Every file is cached for 10 minutes** (`Cache-Control: max-age=600`), pages and `release.json` included. Live, only robots.txt was | Accepted: a reader who loaded the site in the 10 minutes before a release may see the previous day for up to 10 more minutes. Re-checked at cutover ([#88](https://github.com/newpoete/sweepers-editor/issues/88)) |
 | **CDN assets have no integrity hashes** (live didn't either) | Hardening, done in [#87](https://github.com/newpoete/sweepers-editor/issues/87): Bootstrap and jQuery now carry `sha384` hashes. Google Fonts can't, since its CSS varies by browser |
+
+## On the domain
+
+The cutover ([#109](https://github.com/newpoete/sweepers-editor/issues/109)) pointed `sweeperscalendar.com` at Pages on 2026-11-14 at 20:21 UTC, with HTTPS enforced from 20:37. This re-check ([#88](https://github.com/newpoete/sweepers-editor/issues/88)) ran at 20:52 UTC against the release from `0ac6b3f` (2026-11-14, day 319, released 20:33):
+
+```bash
+bash docs/parity-check/capture.sh tmp/parity-domain https://sweeperscalendar.com
+```
+
+Headless Chrome in `capture.sh` now maps GoatCounter's host to a dead end, so the capture never counts its own page loads.
+
+| Check | Result |
+|---|---|
+| Every route in [Routes](#routes) | Same status as on staging: 200 for the pages, JSON, sitemap and robots; 301 then 200 for `/calendar`; 404 for a missing page and `/selection/999`. `/calendar/mountweazel` redirects to `/mountweazel` |
+| `http://` | 301 → `https://`, for the domain and `www` (Flask answered 302) |
+| `www` | `http://www…` and `https://www…` answer 301 to the same path on `https://sweeperscalendar.com` |
+| The old staging URL | `newpoete.github.io/sweepers-publisher/<path>` redirects to `https://sweeperscalendar.com/<path>` |
+| Certificate | Let's Encrypt, for `sweeperscalendar.com` and `www.sweeperscalendar.com`, until 2027-02-12; GitHub renews it |
+| 404 page | "Page **/no-such-page-parity-check** not found.", with no prefix; `<base href="/">`, so it's styled at any depth |
+| `sitemap.txt` | The 10 `https://sweeperscalendar.com/…` URLs: today, yesterday, selections and the 7 selections |
+| `robots.txt` | Allow all, `Sitemap: https://sweeperscalendar.com/sitemap.txt` |
+| Pages, rendered | Today (14 Nov), yesterday (13 Nov) and `/selection/314` show the same HTML as `leaves/319.json`, `318.json` and `314.json`. Titles as on staging |
+| `/mountweazel.json` | `html` identical to the Flask snapshot's |
+| Caching | `Cache-Control: max-age=600` on pages and `release.json`, as on staging. Accepted: a reader who loaded a page in the 10 minutes before a release can see the previous day for up to 10 more minutes |
+| Analytics | GoatCounter counts visits to the domain (owner's dashboard, checked in #109), and none from the staging URL or `localhost` |
+| `sweepers-flask.appspot.com` | Still 200 from App Engine, frozen. It goes when the project is deleted (#110) |
 
 ## The day boundary
 
