@@ -128,14 +128,26 @@ Crawlers only read `robots.txt` at a domain's root, so on staging (under `/sweep
 
 ## Fixtures
 
-`bin/fixtures` writes `spec/fixtures/queue/001.age` to `366.age`, encrypted to the **fixture** key. The fixture identity (`spec/fixtures/fixture-identity.txt`) is committed on purpose: it protects nothing, and it lets anyone run a release locally. **Never encrypt real leaves to it.**
+`bin/fixtures` writes `spec/fixtures/queue/`, encrypted to the **fixture** key. The fixture identity (`spec/fixtures/fixture-identity.txt`) is committed on purpose: it protects nothing, and it lets anyone run a release locally. **Never encrypt real leaves to it.**
 
-- Each day has a synthetic leaf. Its `score` (the editor's score, which ranks selections) is `day % 8`, so 0 to 7. That's always below the selections threshold of 8, so synthetic leaves never become selections.
-- The leaves the live site showed on 2026-11-12 (today, yesterday and the 7 selections) replace the synthetic ones for their days. They come from the parity snapshot (`spec/fixtures/parity-leaves.json`) and were already public.
+The queue holds only the 14 leaves the specs need, around the parity date, 2026-11-12 (day 317). It held one leaf for every day until the release switched to the real queue (sweepers-editor#96); it was trimmed in sweepers-editor#86.
+
+- **The 9 leaves the live site showed on 2026-11-12** (today, yesterday and the 7 selections). They come from the parity snapshot (`spec/fixtures/parity-leaves.json`) and were already public.
   - The 7 selections keep the scores the live site gave them, 9 or 10, which it exposed as `score-N` classes.
   - The scores for today and yesterday (days 316 and 317) are made up, at 5, since the live site doesn't expose them.
+- **5 synthetic leaves** ("Fixture leaf for …"), each testing one rule of a release on 2026-11-12:
 
-A release for **2026-11-12 reproduces the live site exactly** and releases only those 9 leaves. `spec/fixture_queue_spec.rb` checks this.
+  | Day | Date | Score | Tests |
+  |---|---|---|---|
+  | 200 | 18 July | 10 | Outside the 90-day window, so never a selection |
+  | 300 | 26 October | 8 | Meets the threshold, but the 7 parity selections outrank it |
+  | 310 | 5 November | 7 | Inside the window, below the threshold of 8 |
+  | 315 | 10 November | 5 | The day before yesterday, which the release also writes |
+  | 318 | 13 November | 10 | After the release date, so never released |
+
+- **Every other day has no leaf**, like a day the editor never published, so the site shows its empty-day line there.
+
+A release for **2026-11-12 reproduces the live site exactly**: the same today, yesterday and 7 selections, and it releases those 9 leaves plus day 315. `spec/fixture_queue_spec.rb` checks this.
 
 ## How the editor will encrypt (Epic 3)
 

@@ -45,7 +45,8 @@ bundle install
 bundle exec rspec                           # Ruby specs (CI runs both on every push and PR)
 node --test spec/javascripts/*.test.js               # page script specs (Node 18+, no packages)
 
-# Release the fixture queue for any date into a new folder, then serve it.
+# Release the fixture queue into a new folder, then serve it. Its leaves sit around
+# 2026-11-12, so other dates mostly show the empty-day line.
 bin/release spec/fixtures/queue tmp/site --date 2026-11-12 \
   --identity spec/fixtures/fixture-identity.txt
 bundle exec bin/serve tmp/site              # http://localhost:8000, served like GitHub Pages
