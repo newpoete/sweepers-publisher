@@ -4,7 +4,7 @@ The static site for **The Sweepers Calendar** (sweeperscalendar.com): one aphori
 
 This repo holds no editorial state. [Sweepers Editor](https://github.com/newpoete/sweepers-editor) is the source of truth, and the publisher only turns what the editor publishes into the site. See the [Sweepers Publisher charter](https://github.com/newpoete/sweepers-editor/blob/main/docs/roadmap/20261111-sweepers-publisher-charter.md) and the build epic, [newpoete/sweepers-editor#67](https://github.com/newpoete/sweepers-editor/issues/67).
 
-> **Status:** under construction. The site is staged at `newpoete.github.io/sweepers-publisher` with **real data**: Sweepers Editor publishes to `data/queue/` (since 2026-11-14, sweepers-editor#96). sweeperscalendar.com still serves from App Engine until the cutover.
+> **Status:** live at **https://sweeperscalendar.com** since 2026-11-14 (sweepers-editor#109), with real data published by Sweepers Editor to `data/queue/` (sweepers-editor#96). The old staging URL, `newpoete.github.io/sweepers-publisher`, redirects there. The Flask app on App Engine stays up as a fallback until it's deleted (sweepers-editor#110).
 
 ## How it works
 
@@ -49,8 +49,8 @@ node --test spec/javascripts/*.test.js               # page script specs (Node 1
 bundle exec bin/preview                     # http://localhost:8000/today; Ctrl-C to stop
 
 # Or the same by hand, into a new folder. The fixture leaves sit around 2026-11-12, so
-# other dates mostly show the empty-day line. --base-url sets the 404 page's <base>;
-# without it, the 404 page looks for its stylesheets under /sweepers-publisher/.
+# other dates mostly show the empty-day line. --base-url sets the sitemap, robots.txt
+# and the 404 page's <base>; it defaults to https://sweeperscalendar.com.
 bin/release spec/fixtures/queue tmp/site --date 2026-11-12 \
   --identity spec/fixtures/fixture-identity.txt --base-url http://localhost:8000
 bundle exec bin/serve tmp/site              # http://localhost:8000, served like GitHub Pages

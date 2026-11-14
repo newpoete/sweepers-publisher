@@ -87,7 +87,7 @@ AGE_SECRET_KEY=<secret> bin/release data/queue _site [--date YYYY-MM-DD] [--base
 | `selection/<day>.html` | A copy of `templates/selection.html` for each current selection (Pages can't route paths dynamically) |
 | `sitemap.txt` | `https://` URLs for `/today`, `/yesterday`, `/selections` and each `/selection/<day>`, under `--base-url` |
 | `robots.txt` | Allows all crawlers, with a `Sitemap:` line pointing to `sitemap.txt` |
-| `404.html` | `templates/404.html`, with its `<base href>` set to the path of `--base-url` (`/sweepers-publisher/` on staging, `/` at a domain root). Pages serves it for a missing path at any depth, so its relative links must resolve from the site root, not from the missing path. It shows "Page **<path>** not found." |
+| `404.html` | `templates/404.html`, with its `<base href>` set to the path of `--base-url` (`/` at the domain root; it was `/sweepers-publisher/` on the staging URL). Pages serves it for a missing path at any depth, so its relative links must resolve from the site root, not from the missing path. It shows "Page **<path>** not found." |
 | `mountweazel.json` | `{"html": "…"}`, copied from `data/mountweazel.json` |
 | everything in `site/` | The static pages and assets |
 
@@ -122,9 +122,9 @@ The fictitious entry was hard-coded in Flask (`Leaf.mountweazel`), not published
 
 ## The base URL
 
-`--base-url` (default `Sweepers::Release::DEFAULT_BASE_URL`, the staging URL `https://newpoete.github.io/sweepers-publisher`) is the one place the site's address is set. It goes into `sitemap.txt`, `robots.txt` and the 404 page's `<base>`. The cutover (Epic 4) changes it to the final domain.
+`--base-url` (default `Sweepers::Release::DEFAULT_BASE_URL`, `https://sweeperscalendar.com` since the cutover, sweepers-editor#109) is the one place the site's address is set. It goes into `sitemap.txt`, `robots.txt` and the 404 page's `<base>`. Before the cutover it was the staging URL, `https://newpoete.github.io/sweepers-publisher`.
 
-Crawlers only read `robots.txt` at a domain's root, so on staging (under `/sweepers-publisher/`) it has no effect until the custom domain.
+Crawlers only read `robots.txt` at a domain's root, so it had no effect on the staging URL (under `/sweepers-publisher/`). At the domain it does.
 
 ## Fixtures
 

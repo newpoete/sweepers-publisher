@@ -25,7 +25,7 @@ module Sweepers
     SELECTION_LIMIT = 7
     SELECTION_MIN_SCORE = 8
     SNIPPET_LENGTH = 300
-    DEFAULT_BASE_URL = 'https://newpoete.github.io/sweepers-publisher'
+    DEFAULT_BASE_URL = 'https://sweeperscalendar.com' # was the staging URL until the cutover (sweepers-editor#109)
 
     # Immutable value objects (Ruby 3.2+ Data): built once from the queue, never changed.
     Leaf = Data.define(:aphorism_id, :draft_id, :day_of_year, :html, :snippet, :score, :published_at)
@@ -119,8 +119,8 @@ module Sweepers
       File.rename(staging, out_dir)
     end
 
-    # The 404 page, its <base> set to the site root's path ("/sweepers-publisher"
-    # on staging, "" at a domain root). Pages serves 404.html for a missing path
+    # The 404 page, its <base> set to the site root's path ("" at the domain root,
+    # "/sweepers-publisher" on the old staging URL). Pages serves 404.html for a missing path
     # at any depth, so its relative links can't depend on where it's served.
     def not_found_page(template)
       template.gsub('{{base_path}}', URI(base_url).path)
