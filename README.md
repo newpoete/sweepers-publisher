@@ -4,7 +4,7 @@ The static site for **The Sweepers Calendar** (sweeperscalendar.com): one aphori
 
 This repo holds no editorial state. [Sweepers Editor](https://github.com/newpoete/sweepers-editor) is the source of truth, and the publisher only turns what the editor publishes into the site. See the [Sweepers Publisher charter](https://github.com/newpoete/sweepers-editor/blob/main/docs/roadmap/20261111-sweepers-publisher-charter.md) and the build epic, [newpoete/sweepers-editor#67](https://github.com/newpoete/sweepers-editor/issues/67).
 
-> **Status:** under construction. The site is staged at `newpoete.github.io/sweepers-publisher` from fixture data, and sweeperscalendar.com still serves from App Engine.
+> **Status:** under construction. The site is staged at `newpoete.github.io/sweepers-publisher` with **real data**: Sweepers Editor publishes to `data/queue/` (since 2026-11-14, sweepers-editor#96). sweeperscalendar.com still serves from App Engine until the cutover.
 
 ## How it works
 
@@ -64,7 +64,7 @@ The fixture key is committed on purpose because it protects nothing. A real rele
 
 Until a release runs, the previous release stays deployed, so the previous day's leaf stays up. **Scheduled runs can start late:** often by minutes, and sometimes by an hour or more under load.
 
-The private key is the `AGE_SECRET_KEY` Actions secret. Until Epic 3, the workflow releases the fixture queue (`spec/fixtures/queue/`), so the secret holds the **fixture** identity. Epic 3 replaces it with a real key and switches `QUEUE_DIR` to `data/queue`.
+The workflow releases the real queue, `data/queue/` (`QUEUE_DIR`). Its private key is the `AGE_SECRET_KEY` Actions secret, which holds the **real** identity since sweepers-editor#96; the owner keeps the only other copy offline. Before that, the workflow released the fixture queue with the fixture identity. Tests and local releases still use the fixture queue and its committed key.
 
 ```bash
 gh workflow run release.yml                              # release and deploy now

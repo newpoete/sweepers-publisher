@@ -22,8 +22,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # The fixture queue until Epic 3, when the editor starts publishing to data/queue.
-  QUEUE_DIR: spec/fixtures/queue
+  # The real queue, written by sweepers-editor (sweepers-editor#96). The fixture queue
+  # (spec/fixtures/queue) is for tests and local work only.
+  QUEUE_DIR: data/queue
 
 jobs:
   release:
