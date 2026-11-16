@@ -78,6 +78,38 @@ footer a:hover {
 }
 
 /*
+ * Bluesky links (sweepers-editor#117)
+ */
+nav.navbar svg.bluesky-logo {
+  width: 1.1em;
+  height: 1.1em;
+  margin-right: 4px;
+  vertical-align: -0.15em;
+  fill: #1185fe; /* Bluesky blue */
+}
+
+@media (min-width: 768px) {
+  /* "Newpoete · Calendar": pull the two links together with a dot between. */
+  .navbar-default .navbar-bluesky > li:first-child > a {
+    padding-right: 4px;
+  }
+
+  .navbar-default .navbar-bluesky > li + li > a {
+    padding-left: 4px;
+  }
+
+  .navbar-default .navbar-bluesky > li + li > a::before {
+    content: "\00b7";
+    margin-right: 6px;
+  }
+
+  /* One butterfly for the pair; the phone menu lists them apart, so each gets one there. */
+  nav.navbar svg.bluesky-logo-menu {
+    display: none;
+  }
+}
+
+/*
  * Leaf
  */
 div#leaf {
