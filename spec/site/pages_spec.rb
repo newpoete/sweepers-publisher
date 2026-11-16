@@ -76,11 +76,13 @@ RSpec.describe 'Site pages' do
     it 'are in every navbar, at the right, and never in the footer (sweepers-editor#117)' do
       calendar = 'href="https://bsky.app/profile/sweeperscalendar.com" target="_blank" rel="noopener"'
       newpoete = 'href="https://bsky.app/profile/newpoete.bsky.social" target="_blank" rel="noopener"'
-      logo = %r{<svg class="bluesky-logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 10\.8[^"]+"/></svg>}
+      logo = ->(css) { %r{<svg class="#{css}" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 10\.8[^"]+"/></svg>} }
       # The right-hand list holds only the two Bluesky links, clear of the centered brand at tablet widths.
-      parts = ['<ul class="nav navbar-nav navbar-right navbar-bluesky">', '<li>', "<a #{newpoete}>", logo,
+      # Calendar's butterfly shows only in the phone menu, where the two links sit on separate lines.
+      parts = ['<ul class="nav navbar-nav navbar-right navbar-bluesky">', '<li>', "<a #{newpoete}>", logo.call('bluesky-logo'),
                'Newpoete<span class="sr-only"> on Bluesky</span>', '</a>', '</li>',
-               %(<li><a #{calendar}>Calendar<span class="sr-only"> on Bluesky</span></a></li>), '</ul>']
+               "<li><a #{calendar}>", logo.call('bluesky-logo bluesky-logo-menu'),
+               'Calendar<span class="sr-only"> on Bluesky</span></a></li>', '</ul>']
       right = Regexp.new(parts.map { |part| part.is_a?(Regexp) ? part.source : Regexp.escape(part) }.join('\s*'))
       page_paths.each do |path|
         html = page(path)

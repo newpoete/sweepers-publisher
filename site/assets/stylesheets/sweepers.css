@@ -102,6 +102,11 @@ nav.navbar svg.bluesky-logo {
     content: "\00b7";
     margin-right: 6px;
   }
+
+  /* One butterfly for the pair; the phone menu lists them apart, so each gets one there. */
+  nav.navbar svg.bluesky-logo-menu {
+    display: none;
+  }
 }
 
 /*
