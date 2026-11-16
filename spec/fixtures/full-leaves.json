@@ -1,0 +1,13 @@
+{
+  "source": "Full leaves from sweeperscalendar.com/leaves/<day>.json, 2026-11-16, while both were current selections (already public). parity-leaves.json holds only their 300-character selection snippets.",
+  "leaves": [
+    {
+      "day_of_year": 298,
+      "html": "<p>With electroencephalograms and magnetic resonance imaging, the day when a doctor may trace the flickering light of a thought through the most obscure corridors of the mind seems inevitable.  The capability of restoring, or eliminating, the sensitive areas of a malfunctioning mind would not trail far behind.  Like all notions of a utopian character, this one is fraught with horrible implications.  The end of poetry, as Plato might have predicted, is not the least.</p>\n"
+    },
+    {
+      "day_of_year": 272,
+      "html": "<p>As soon as the artificial problem of scarcity is finally eradicated, economics will immediately turn to the dangerous problem of superabundance.  States will fall into turmoil as people riot for want of absolutely nothing.  And the leisure class will be distinguished not by its conspicuous exhibition of affluence, but by a fashionable hint of the mildest deprivation.</p>\n"
+    }
+  ]
+}

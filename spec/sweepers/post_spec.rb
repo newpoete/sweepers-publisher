@@ -8,6 +8,8 @@ RSpec.describe Sweepers::Post do
       expect(post.cut?).to be(false)
     end
 
+    # Days 298 and 272 in the parity snapshot are the old site's 300-character selection
+    # snippets, which fit, so only day 316 is cut here. Their full leaves are tested below.
     it 'cuts only the parity leaf over 300 graphemes, and every post fits' do
       posts = parity_leaves.to_h { |leaf| [leaf['day_of_year'], described_class.from_leaf(leaf['html'], date: Date.new(2026, 11, 12))] }
       expect(posts.select { |_, post| post.cut? }.keys).to eq([316])
@@ -24,6 +26,16 @@ RSpec.describe Sweepers::Post do
         full = described_class.plain_text(parity_html(316))
         expect(full).to start_with(text.chomp('…'))
         expect(full[text.chomp('…').length]).to match(/[\s,;:]/)
+      end
+    end
+
+    context 'when the leaf is one of the full leaves behind the parity snippets' do
+      it 'cuts each at a word break, unlike its snippet' do
+        posts = full_leaves.to_h { |leaf| [leaf['day_of_year'], described_class.from_leaf(leaf['html'], date: Date.new(2026, 11, 16))] }
+        expect(posts.transform_values(&:cut?)).to eq(298 => true, 272 => true)
+        expect(posts[298].text).to end_with('a malfunctioning mind would not trail far…')
+        expect(posts[272].text).to end_with('not by its conspicuous exhibition…')
+        posts.each_value { |post| expect(post.text.grapheme_clusters.size).to be <= 300 }
       end
     end
 
@@ -123,6 +135,10 @@ RSpec.describe Sweepers::Post do
 
   def parity_leaves
     JSON.parse(File.read(File.join(FIXTURES, 'parity-leaves.json')))['leaves']
+  end
+
+  def full_leaves
+    JSON.parse(File.read(File.join(FIXTURES, 'full-leaves.json')))['leaves']
   end
 
   def parity_html(day)
