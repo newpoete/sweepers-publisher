@@ -5,11 +5,15 @@ name: Bluesky Post
 # is independent of the release. bin/post posts at most once a day, and nothing
 # if the live release isn't today's or today has no leaf.
 #
-# For now it runs only when started by hand, and a manual run is a dry run unless
-# dry_run is unticked. The daily schedule comes in sweepers-editor#130. It never
-# runs on a push.
+# It runs daily at 13:30 UTC (5:30 PST, 6:30 PDT; sweepers-editor#130), 13 hours
+# after the release. A scheduled run posts. A manual run is a dry run unless
+# dry_run is unticked. It never runs on a push.
 
 on:
+  schedule:
+    # GitHub's cron is UTC with no daylight saving. A late start is fine: the
+    # UTC date stays the Pacific date until 4 pm Pacific (5 pm in summer).
+    - cron: '30 13 * * *'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -49,8 +53,9 @@ jobs:
             echo "::error::The BLUESKY_APP_PASSWORD Actions secret is not set."
             exit 1
           fi
-          # Only an explicit "false" posts from a manual run.
+          # The schedule posts. A manual run posts only with an explicit "false".
           dry_run=true
+          if [ "$EVENT" = schedule ]; then dry_run=false; fi
           if [ "$EVENT" = workflow_dispatch ] && [ "$DRY_RUN_INPUT" = false ]; then dry_run=false; fi
 
           set +e
