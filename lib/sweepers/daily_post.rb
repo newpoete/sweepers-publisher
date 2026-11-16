@@ -17,9 +17,10 @@ module Sweepers
   #   re-run post again).
   class DailyPost
     SITE = 'https://sweeperscalendar.com'
-    # The link card's image: the woodcut from both accounts' avatars
-    # (sweepers-editor docs/social/newpoete-avatar.jpg, 400×400, 26 KB).
-    CARD_IMAGE = File.expand_path('../../data/bluesky-card.jpg', __dir__)
+    # The link card's image, a JPEG path, or nil for a card with no image. None for
+    # now: Bluesky shows a card's image as a full-width banner, and the square
+    # woodcut filled the card (sweepers-editor#130). A wide image may come later.
+    CARD_IMAGE = nil
     CARD_IMAGE_TYPE = 'image/jpeg'
 
     # status: :posted, :would_post (a dry run) or :skipped. post: the
@@ -59,7 +60,7 @@ module Sweepers
       raise Bluesky::Error, 'no app password given' if app_password.to_s.empty?
 
       @bluesky.login(app_password)
-      thumb = @bluesky.upload_blob(File.binread(@card_image), CARD_IMAGE_TYPE)
+      thumb = @bluesky.upload_blob(File.binread(@card_image), CARD_IMAGE_TYPE) if @card_image
       created = @bluesky.create_post(post.record(thumb: thumb))
       Result.new(:posted, "Posted day #{day} as @#{@bluesky.handle}.", post, url_of(created.fetch('uri')))
     end
