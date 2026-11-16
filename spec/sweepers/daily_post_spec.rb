@@ -3,21 +3,39 @@
 RSpec.describe Sweepers::DailyPost do
   describe '#run' do
     context 'when today is released, has a leaf and is not yet posted' do
-      it "posts the leaf with the card image and returns the post's address" do
-        http = site_http
+      it "posts the leaf with a card and no image, and returns the post's address" do
         bluesky = bluesky_double
-        thumb = { '$type' => 'blob', 'ref' => { '$link' => 'bafkrei-card' } }
         allow(bluesky).to receive(:login).with('app-pass')
-        allow(bluesky).to receive(:upload_blob).with(File.binread(described_class::CARD_IMAGE), 'image/jpeg').and_return(thumb)
         allow(bluesky).to receive(:create_post) do |record|
           expect(record['text']).to eq('All statement is overstatement.')
-          expect(record.dig('embed', 'external')).to include('description' => 'Monday, 16 November 2026', 'thumb' => thumb)
+          expect(record.dig('embed', 'external')).to eq('uri' => 'https://sweeperscalendar.com', 'title' => 'The Sweepers Calendar',
+                                                        'description' => 'Monday, 16 November 2026')
           { 'uri' => 'at://did:plc:calendar/app.bsky.feed.post/3abc', 'cid' => 'bafyrei' }
         end
-        result = described_class.new(bluesky, http: http).run(today: Date.new(2026, 11, 16), dry_run: false, app_password: 'app-pass')
+        result = described_class.new(bluesky, http: site_http).run(today: Date.new(2026, 11, 16), dry_run: false, app_password: 'app-pass')
         expect(result.status).to eq(:posted)
         expect(result.url).to eq('https://bsky.app/profile/sweeperscalendar.com/post/3abc')
         expect(bluesky).to have_received(:create_post).once
+      end
+    end
+
+    context 'when given a card image' do
+      it 'uploads it and adds it to the card' do
+        Dir.mktmpdir do |dir|
+          image = File.join(dir, 'card.jpg')
+          File.binwrite(image, "\xFF\xD8\xFFcard")
+          bluesky = bluesky_double
+          thumb = { '$type' => 'blob', 'ref' => { '$link' => 'bafkrei-card' } }
+          allow(bluesky).to receive(:login)
+          allow(bluesky).to receive(:upload_blob).with("\xFF\xD8\xFFcard".b, 'image/jpeg').and_return(thumb)
+          allow(bluesky).to receive(:create_post) { |record|
+            expect(record.dig('embed', 'external', 'thumb')).to eq(thumb)
+            { 'uri' => 'at://did:plc:calendar/app.bsky.feed.post/3abc' }
+          }
+          described_class.new(bluesky, http: site_http, card_image: image)
+                         .run(today: Date.new(2026, 11, 16), dry_run: false, app_password: 'app-pass')
+          expect(bluesky).to have_received(:upload_blob).once
+        end
       end
     end
 
@@ -70,14 +88,6 @@ RSpec.describe Sweepers::DailyPost do
     end
   end
 
-  describe 'CARD_IMAGE' do
-    it 'is a JPEG under the 1 MB limit for a card image' do
-      bytes = File.binread(described_class::CARD_IMAGE)
-      expect(bytes.byteslice(0, 3).bytes).to eq([0xFF, 0xD8, 0xFF])
-      expect(bytes.bytesize).to be < 1_000_000
-    end
-  end
-
   # The live site for 2026-11-16 (day 321), with today's leaf or none.
   def site_http(leaf: { 'day_of_year' => 321, 'html' => "<p>All statement is overstatement.</p>\n" })
     http = instance_double(Sweepers::HTTP)
@@ -88,7 +98,8 @@ RSpec.describe Sweepers::DailyPost do
   end
 
   # A Bluesky client that has no post today, unless told otherwise. Any call not
-  # stubbed (login, upload_blob, create_post) fails the example.
+  # stubbed (login, upload_blob, create_post) fails the example, so a test that
+  # doesn't stub upload_blob also proves no image is uploaded.
   def bluesky_double(posted_today: [])
     bluesky = instance_double(Sweepers::Bluesky, handle: 'sweeperscalendar.com')
     allow(bluesky).to receive(:posts_on).with(Date.new(2026, 11, 16)).and_return(posted_today)
