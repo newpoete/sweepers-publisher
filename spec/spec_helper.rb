@@ -9,6 +9,7 @@ require 'open3'
 require 'tmpdir'
 require 'sweepers/calendar'
 require 'sweepers/crypto'
+require 'sweepers/post'
 require 'sweepers/queue'
 require 'sweepers/release'
 
