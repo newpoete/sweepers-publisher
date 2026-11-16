@@ -58,6 +58,50 @@ nav.navbar div.navbar-brand a:hover,
 }
 
 /*
+ * Tablets (768-991px) get the phone menu, not the full navbar: there the
+ * centered brand would sit on top of the links (sweepers-editor#121).
+ * Bootstrap 3 expands the navbar from 768px, so this undoes that up to 991px.
+ */
+@media (min-width: 768px) and (max-width: 991px) {
+  .navbar-header {
+    float: none;
+  }
+
+  .navbar-toggle {
+    display: block;
+  }
+
+  .navbar-collapse {
+    border-top: 1px solid transparent;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);
+  }
+
+  .navbar-collapse.collapse {
+    display: none !important;
+  }
+
+  .navbar-collapse.collapse.in {
+    display: block !important;
+    overflow-y: auto !important;
+  }
+
+  .navbar-nav,
+  .navbar-right {
+    float: none !important;
+    margin: 7.5px -15px;
+  }
+
+  .navbar-nav > li {
+    float: none;
+  }
+
+  .navbar-nav > li > a {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+
+/*
  * Footer
  */
 footer.footer {
@@ -88,7 +132,7 @@ nav.navbar svg.bluesky-logo {
   fill: #1185fe; /* Bluesky blue */
 }
 
-@media (min-width: 768px) {
+@media (min-width: 992px) {
   /* "Newpoete · Calendar": pull the two links together with a dot between. */
   .navbar-default .navbar-bluesky > li:first-child > a {
     padding-right: 4px;

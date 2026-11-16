@@ -27,7 +27,8 @@ body {
  * http://bootsnipp.com/snippets/featured/navbar-brand-centered
  * http://www.bootply.com/3iSOTAyumP
  */
-@media screen and (min-width:768px){
+/* From 992px only: below it the navbar collapses to the menu button (sweepers-editor#121). */
+@media screen and (min-width:992px){
   .navbar-brand-centered {
       position: absolute;
       left: 50%;
