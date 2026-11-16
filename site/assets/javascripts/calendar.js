@@ -94,21 +94,30 @@
     return (n < 10 ? '0' : '') + n;
   }
 
-  // "2026-11-11 16:53:08 PST": the reader's local time and zone, for the footer.
-  function clockText(now) {
+  // The reader's local date and time, for the footer clock: { date: "2026-11-11",
+  // time: "16:53:08 PST" }. Phones show only the time (sweepers-editor#122).
+  function clockParts(now) {
     var zone = '';
     try {
       var parts = new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' }).formatToParts(now);
       parts.forEach(function (part) { if (part.type === 'timeZoneName') { zone = part.value; } });
     } catch (e) { zone = ''; }
-    var stamp = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + ' ' +
-                pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
-    return zone ? stamp + ' ' + zone : stamp;
+    var time = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+    return {
+      date: now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()),
+      time: zone ? time + ' ' + zone : time
+    };
+  }
+
+  // "2026-11-11 16:53:08 PST": the whole stamp, as wider screens show it.
+  function clockText(now) {
+    var parts = clockParts(now);
+    return parts.date + ' ' + parts.time;
   }
 
   return {
     calendarDate: calendarDate, localDate: localDate, parseDate: parseDate, addDays: addDays,
     dayOfYear: dayOfYear, todayShown: todayShown, shownDate: shownDate, weekday: weekday,
-    ordinal: ordinal, headingParts: headingParts, title: title, clockText: clockText
+    ordinal: ordinal, headingParts: headingParts, title: title, clockParts: clockParts, clockText: clockText
   };
 });

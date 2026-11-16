@@ -136,7 +136,19 @@
     if (year) { year.textContent = String(new Date().getFullYear()); }
     var clock = doc.querySelector('.livestamp');
     if (!clock) { return; }
-    var tick = function () { clock.textContent = Calendar.clockText(new Date()); };
+    // Two spans, so phones can hide the date (sweepers-editor#122).
+    var date = doc.createElement('span');
+    var time = doc.createElement('span');
+    date.className = 'clock-date';
+    time.className = 'clock-time';
+    clock.textContent = '';
+    clock.appendChild(date);
+    clock.appendChild(time);
+    var tick = function () {
+      var parts = Calendar.clockParts(new Date());
+      date.textContent = parts.date + ' ';
+      time.textContent = parts.time;
+    };
     tick();
     win.setInterval(tick, 1000);
   }
