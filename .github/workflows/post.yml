@@ -1,0 +1,76 @@
+name: Post
+
+# Posts today's leaf to the calendar's Bluesky account, @sweeperscalendar.com
+# (sweepers-editor#129). It reads only the live site, so it needs no queue key and
+# is independent of the release. bin/post posts at most once a day, and nothing
+# if the live release isn't today's or today has no leaf.
+#
+# For now it runs only when started by hand, and a manual run is a dry run unless
+# dry_run is unticked. The daily schedule comes in sweepers-editor#130. It never
+# runs on a push.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run: sign in and show the post, but post nothing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+# One post run at a time; a newer one waits rather than cancelling a post midway.
+# Separate from the release's "pages" group, so neither holds up the other.
+concurrency:
+  group: bluesky-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # bin/post uses only Ruby's standard library, so no bundle install.
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
+        with:
+          ruby-version: .ruby-version
+      # The app password reaches bin/post through the environment only. GitHub
+      # masks it in logs, and bin/post never prints it or the session token.
+      - name: Post
+        shell: bash
+        env:
+          BLUESKY_HANDLE: ${{ vars.BLUESKY_HANDLE }}
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+          EVENT: ${{ github.event_name }}
+          DRY_RUN_INPUT: ${{ inputs.dry_run }}
+        run: |
+          if [ -z "$BLUESKY_APP_PASSWORD" ]; then
+            echo "::error::The BLUESKY_APP_PASSWORD Actions secret is not set."
+            exit 1
+          fi
+          # Only an explicit "false" posts from a manual run.
+          dry_run=true
+          if [ "$EVENT" = workflow_dispatch ] && [ "$DRY_RUN_INPUT" = false ]; then dry_run=false; fi
+
+          set +e
+          {
+            if [ "$dry_run" = true ]; then
+              # A dry run still signs in, to prove the secret works, then shows the post.
+              bin/post --check-login && bin/post --dry-run
+            else
+              bin/post
+            fi
+          } > "$RUNNER_TEMP/post.txt" 2>&1
+          status=$?
+          set -e
+
+          cat "$RUNNER_TEMP/post.txt"
+          {
+            if [ "$dry_run" = true ]; then echo '### Bluesky post (dry run)'; else echo '### Bluesky post'; fi
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/post.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
