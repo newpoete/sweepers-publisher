@@ -73,15 +73,19 @@ RSpec.describe 'Site pages' do
   end
 
   describe 'Bluesky links' do
-    it 'are in every navbar and footer, opening in a new tab (sweepers-editor#117)' do
+    it 'are in every navbar, at the right, and never in the footer (sweepers-editor#117)' do
       calendar = 'href="https://bsky.app/profile/sweeperscalendar.com" target="_blank" rel="noopener"'
       newpoete = 'href="https://bsky.app/profile/newpoete.bsky.social" target="_blank" rel="noopener"'
-      # The right-hand list holds Bluesky alone, clear of the centered brand at tablet widths.
-      right = %r{<ul class="nav navbar-nav navbar-right">\s*<li><a #{calendar}>Bluesky</a></li>\s*</ul>}
+      logo = %r{<svg class="bluesky-logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 10\.8[^"]+"/></svg>}
+      # The right-hand list holds only the two Bluesky links, clear of the centered brand at tablet widths.
+      parts = ['<ul class="nav navbar-nav navbar-right navbar-bluesky">', '<li>', "<a #{newpoete}>", logo,
+               'Newpoete<span class="sr-only"> on Bluesky</span>', '</a>', '</li>',
+               %(<li><a #{calendar}>Calendar<span class="sr-only"> on Bluesky</span></a></li>), '</ul>']
+      right = Regexp.new(parts.map { |part| part.is_a?(Regexp) ? part.source : Regexp.escape(part) }.join('\s*'))
       page_paths.each do |path|
         html = page(path)
         expect(layout(html, 'navbar')).to match(right), path
-        expect(layout(html, 'footer')).to include(%(<a #{newpoete}>Newpoete</a>), %(<a #{calendar}>Calendar</a>)), path
+        expect(layout(html, 'footer')).not_to include('bsky.app'), path
       end
     end
   end
