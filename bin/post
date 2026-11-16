@@ -1,0 +1,67 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Posts today's leaf to the calendar's Bluesky account, at most once a day
+# (sweepers-editor#127).
+#
+#   bin/post --dry-run       # show the post it would make; sign in to nothing, write nothing
+#   bin/post --check-login   # sign in with the app password and stop; posts nothing
+#   bin/post                 # post, if today's leaf is live and not yet posted
+#
+# BLUESKY_HANDLE is the account (default sweeperscalendar.com). BLUESKY_APP_PASSWORD
+# is its app password, from an Actions secret; never the account password. If it
+# isn't set and this runs in a terminal, it's asked for without echoing. Neither
+# it nor the session token is ever printed.
+#
+# Exit status: 0 when it posted, would post, or had good reason not to (the reason
+# is printed); 1 when something failed (network, sign-in, a rejected post).
+
+require 'date'
+require 'io/console'
+require 'optparse'
+require_relative '../lib/sweepers/bluesky'
+require_relative '../lib/sweepers/daily_post'
+
+options = { dry_run: false, check_login: false }
+OptionParser.new do |o|
+  o.banner = 'Usage: bin/post [--dry-run | --check-login]'
+  o.on('--dry-run', 'Show the post it would make, and write nothing') { options[:dry_run] = true }
+  o.on('--check-login', 'Sign in with the app password and stop') { options[:check_login] = true }
+end.parse!
+
+handle = ENV.fetch('BLUESKY_HANDLE', '').strip
+handle = 'sweeperscalendar.com' if handle.empty?
+
+app_password = lambda do
+  password = ENV.fetch('BLUESKY_APP_PASSWORD', '')
+  if password.empty? && $stdin.tty?
+    password = IO.console.getpass("App password for @#{handle} (not shown): ").to_s.strip
+  end
+  abort('BLUESKY_APP_PASSWORD is not set.') if password.empty?
+  password
+end
+
+bluesky = Sweepers::Bluesky.new(handle)
+begin
+  if options[:check_login]
+    session = bluesky.login(app_password.call)
+    puts "Signed in as @#{session['handle']} (#{session['did']}). Nothing was posted."
+    exit
+  end
+
+  result = Sweepers::DailyPost.new(bluesky).run(today: Time.now.utc.to_date, dry_run: options[:dry_run],
+                                                app_password: (app_password.call unless options[:dry_run]))
+rescue Sweepers::Bluesky::Error, Sweepers::HTTP::Error, KeyError, Date::Error => e
+  abort("post failed: #{e.message}")
+end
+
+puts result.message
+if result.post
+  post = result.post
+  puts
+  puts post.text
+  puts
+  puts "Card: #{Sweepers::Post::CARD_TITLE} · #{post.card_description} → #{Sweepers::Post::CARD_URI}"
+  puts "Length: #{post.text.grapheme_clusters.size} graphemes#{', cut to fit' if post.cut?}"
+end
+puts "Post: #{result.url}" if result.url
