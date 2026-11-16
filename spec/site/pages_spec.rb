@@ -66,9 +66,23 @@ RSpec.describe 'Site pages' do
   end
 
   describe 'navbar links' do
-    it "link only to the site's own pages, not the old blog or Twitter (sweepers-editor#84)" do
-      offsite = page_paths.select { |path| page(path).match?(/blogspot|twitter\.com|navbar-right/) }
+    it 'never link to the old blog or Twitter (sweepers-editor#84)' do
+      offsite = page_paths.select { |path| page(path).match?(/blogspot|twitter\.com|x\.com/) }
       expect(offsite).to be_empty
+    end
+  end
+
+  describe 'Bluesky links' do
+    it 'are in every navbar and footer, opening in a new tab (sweepers-editor#117)' do
+      calendar = 'href="https://bsky.app/profile/sweeperscalendar.com" target="_blank" rel="noopener"'
+      newpoete = 'href="https://bsky.app/profile/newpoete.bsky.social" target="_blank" rel="noopener"'
+      # The right-hand list holds Bluesky alone, clear of the centered brand at tablet widths.
+      right = %r{<ul class="nav navbar-nav navbar-right">\s*<li><a #{calendar}>Bluesky</a></li>\s*</ul>}
+      page_paths.each do |path|
+        html = page(path)
+        expect(layout(html, 'navbar')).to match(right), path
+        expect(layout(html, 'footer')).to include(%(<a #{newpoete}>Newpoete</a>), %(<a #{calendar}>Calendar</a>)), path
+      end
     end
   end
 

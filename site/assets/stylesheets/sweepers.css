@@ -77,6 +77,25 @@ footer a:hover {
   text-decoration: none;
 }
 
+/* On phones, the Bluesky links get their own line, so the footer is taller (sweepers-editor#117). */
+@media (max-width: 767px) {
+  body {
+    margin-bottom: 60px;
+  }
+
+  .footer {
+    height: 60px;
+  }
+
+  footer .footer-sep {
+    display: none;
+  }
+
+  footer .footer-social {
+    display: block;
+  }
+}
+
 /*
  * Leaf
  */
