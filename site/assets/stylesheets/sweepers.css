@@ -26,6 +26,13 @@ nav.navbar div.navbar-brand {
   font-style: italic;
 }
 
+/* Narrow phones: a smaller brand, so it fits beside the menu button (sweepers-editor#133). */
+@media (max-width: 399px) {
+  nav.navbar div.navbar-brand {
+    font-size: 24px;
+  }
+}
+
 nav.navbar div.navbar-brand a, .navbar-default .navbar-nav>li>a {
   color: #978282;
 }
