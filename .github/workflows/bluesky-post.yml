@@ -1,4 +1,4 @@
-name: Post
+name: Bluesky post
 
 # Posts today's leaf to the calendar's Bluesky account, @sweeperscalendar.com
 # (sweepers-editor#129). It reads only the live site, so it needs no queue key and

@@ -4,9 +4,9 @@ require 'yaml'
 
 # The posting workflow's safety rules (sweepers-editor#129), checked so an edit
 # can't quietly make a push post, or a manual run post by default.
-RSpec.describe 'Post workflow' do
+RSpec.describe 'Bluesky post workflow' do
   def workflow
-    path = File.join(ROOT, '.github', 'workflows', 'post.yml')
+    path = File.join(ROOT, '.github', 'workflows', 'bluesky-post.yml')
     YAML.safe_load_file(path, aliases: false)
   end
 
@@ -25,7 +25,7 @@ RSpec.describe 'Post workflow' do
 
   describe 'secrets' do
     it 'gets only the app password, through the environment, and never the queue key' do
-      text = File.read(File.join(ROOT, '.github', 'workflows', 'post.yml'))
+      text = File.read(File.join(ROOT, '.github', 'workflows', 'bluesky-post.yml'))
       expect(text.scan(/secrets\.\w+/).uniq).to eq(['secrets.BLUESKY_APP_PASSWORD'])
       expect(workflow.dig('jobs', 'post', 'steps').find { |step| step['name'] == 'Post' }.dig('env', 'BLUESKY_APP_PASSWORD'))
         .to eq('${{ secrets.BLUESKY_APP_PASSWORD }}')
