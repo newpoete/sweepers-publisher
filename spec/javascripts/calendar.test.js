@@ -114,3 +114,10 @@ describe('Calendar.clockText', () => {
     assert.equal(Calendar.clockText(now), '2026-11-11 16:53:08 PST');
   });
 });
+
+describe('Calendar.clockParts', () => {
+  it('splits the date from the time and zone, so phones can show the time alone', () => {
+    const now = inZone('America/Los_Angeles', '2026-11-12T00:53:08Z');
+    assert.deepEqual(Calendar.clockParts(now), { date: '2026-11-11', time: '16:53:08 PST' });
+  });
+});

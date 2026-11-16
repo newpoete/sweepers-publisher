@@ -122,6 +122,73 @@ footer a:hover {
 }
 
 /*
+ * Bootstrap stacks the footer's three columns below 992px, which overflows its
+ * fixed height (sweepers-editor#122). Tablets (768-991px) keep one row, in
+ * equal thirds so the full clock fits. Phones get two rows: the clock and the
+ * license badge, then the copyright, centered. The columns are, in order, the
+ * clock, the copyright and the badge.
+ */
+@media (min-width: 768px) and (max-width: 991px) {
+  footer.footer .row > div {
+    float: left;
+    width: 33.33333333%;
+  }
+}
+
+@media (max-width: 767px) {
+  body {
+    margin-bottom: 56px;
+  }
+
+  footer.footer {
+    height: 56px;
+    padding-top: 8px;
+  }
+
+  footer.footer .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  footer.footer .row::before,
+  footer.footer .row::after {
+    display: none;
+  }
+
+  footer.footer .row > div {
+    width: 50%;
+  }
+
+  footer.footer .row > div:nth-child(1) {
+    order: 1;
+  }
+
+  footer.footer .row > div:nth-child(3) {
+    order: 2;
+  }
+
+  footer.footer .row > div:nth-child(2) {
+    order: 3;
+    width: 100%;
+  }
+
+  footer.footer p {
+    margin-bottom: 2px;
+    line-height: 20px;
+  }
+
+  footer.footer p img {
+    vertical-align: -2px;
+  }
+
+  /* Phones show the clock's time only. */
+  footer.footer .clock-date {
+    display: none;
+  }
+}
+
+/*
  * Bluesky links (sweepers-editor#117)
  */
 nav.navbar svg.bluesky-logo {
