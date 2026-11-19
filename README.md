@@ -90,6 +90,28 @@ GitHub disables scheduled workflows in a public repo after **60 days with no rep
 - **Why a commit and not the API:** GitHub's docs don't say whether re-enabling a workflow through the API resets the 60 days, but a commit is unambiguous activity.
 - **If schedules are disabled anyway,** the Actions tab shows a banner. Re-enable with `gh workflow enable release.yml`.
 
+## Daily Bluesky post
+
+`.github/workflows/bluesky-post.yml` (**Bluesky Post**) posts today's leaf to [`@sweeperscalendar.com`](https://bsky.app/profile/sweeperscalendar.com) (sweepers-editor#124). It runs:
+- **every day at 12:30 UTC**, well after the 00:07 UTC release, when the UTC and Pacific dates are the same. GitHub has been starting this repo's scheduled runs about an hour late, so posts land around 5:30 PST (6:30 PDT);
+- **by hand**, as a **dry run** unless `dry_run` is set to false.
+
+`bin/post` does the work. It reads the live site's `release.json` and today's `leaves/<day>.json`, so it posts only what the site already shows. It posts **at most once per UTC day**: if the account already has a post today, it skips and links that post. The post's text is the leaf as plain text, cut at a word break with "…" when it's over 300 graphemes. Its link card points to https://sweeperscalendar.com, titled "The Sweepers Calendar", with the entry's date as its description.
+
+It signs in with an **app password**, from the `BLUESKY_APP_PASSWORD` Actions secret, and the handle comes from the `BLUESKY_HANDLE` variable. Neither the password nor the session token is ever printed. Each run's Summary shows what it posted, or why it skipped.
+
+```bash
+gh workflow run bluesky-post.yml                          # dry run: sign in, show the post, write nothing
+gh workflow run bluesky-post.yml -f dry_run=false         # post now (skips if already posted today)
+gh run list --workflow bluesky-post.yml --limit 5         # recent runs
+gh workflow disable bluesky-post.yml                      # pause posting (enable to resume)
+
+bin/post --dry-run                                        # locally: show today's post, sign in to nothing
+bin/post --check-login                                    # locally: sign in and stop (asks for the app password)
+```
+
+**To replace a bad post,** delete it in Bluesky, then run with `dry_run=false` before 16:00 PST, while it's still the same UTC day. Re-running, pausing and rotating the app password are covered in [Sweepers Editor's `docs/social.md`](https://github.com/newpoete/sweepers-editor/blob/main/docs/social.md#the-daily-post) (that repo is private).
+
 ## Analytics
 
 Every page loads [GoatCounter](https://www.goatcounter.com) (sweepers-editor#107). It sets no cookies and collects no personal data, so there's no consent banner.
