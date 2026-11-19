@@ -32,7 +32,7 @@ The staged site at `https://newpoete.github.io/sweepers-publisher/` compared, ro
 | `/robots.txt` | allow all, `SITEMAP: http://…` | allow all, `Sitemap: https://…` | Intended |
 | `/no-such-page-parity-check` | 404, "Page **/no-such-page-parity-check** not found." | 404, "Page **/sweepers-publisher/no-such-page-parity-check** not found." | Path prefix only on staging ([#88](https://github.com/newpoete/sweepers-editor/issues/88)) |
 | `https://www.sweeperscalendar.com/` | 200, served directly | at the domain: 301 → `https://sweeperscalendar.com/` | Intended, see [On the domain](#on-the-domain) |
-| `https://sweepers-flask.appspot.com/` | 200, served directly | not applicable | Keeps serving the frozen Flask app until the App Engine project is deleted ([#110](https://github.com/newpoete/sweepers-editor/issues/110)) |
+| `https://sweepers-flask.appspot.com/` | 200, served directly | not applicable | Kept serving the frozen Flask app until the App Engine project was shut down on 2026-11-19 ([#110](https://github.com/newpoete/sweepers-editor/issues/110)) |
 
 Page titles match on every page ("Sweepers Calendar for 12th of November", "… Selected Aphorisms", "… for 22nd of May", "Page Not Found").
 
@@ -95,7 +95,7 @@ Headless Chrome in `capture.sh` now maps GoatCounter's host to a dead end, so th
 | `/mountweazel.json` | `html` identical to the Flask snapshot's |
 | Caching | `Cache-Control: max-age=600` on pages and `release.json`, as on staging. Accepted: a reader who loaded a page in the 10 minutes before a release can see the previous day for up to 10 more minutes |
 | Analytics | GoatCounter counts visits to the domain (owner's dashboard, checked in #109), and none from the staging URL or `localhost` |
-| `sweepers-flask.appspot.com` | Still 200 from App Engine, frozen. It goes when the project is deleted (#110) |
+| `sweepers-flask.appspot.com` | Still 200 from App Engine, frozen, at the cutover. The project was shut down on 2026-11-19 and is deleted for good after 19 December 2026 ([sweepers-editor#110](https://github.com/newpoete/sweepers-editor/issues/110)) |
 
 ## The day boundary
 
