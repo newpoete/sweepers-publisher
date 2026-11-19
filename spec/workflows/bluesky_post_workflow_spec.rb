@@ -16,10 +16,10 @@ RSpec.describe 'Bluesky post workflow' do
   end
 
   describe 'triggers' do
-    it 'runs daily at 13:30 UTC or by hand, never on a push, and a manual run is a dry run by default' do
+    it 'runs daily at 12:30 UTC or by hand, never on a push, and a manual run is a dry run by default' do
       on = triggers(workflow)
       expect(on.keys).to contain_exactly('schedule', 'workflow_dispatch')
-      expect(on['schedule']).to eq([{ 'cron' => '30 13 * * *' }])
+      expect(on['schedule']).to eq([{ 'cron' => '30 12 * * *' }])
       expect(on.dig('workflow_dispatch', 'inputs', 'dry_run')).to include('type' => 'boolean', 'default' => true)
     end
   end
