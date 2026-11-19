@@ -4,7 +4,7 @@ The static site for **The Sweepers Calendar** (sweeperscalendar.com): one aphori
 
 This repo holds no editorial state. [Sweepers Editor](https://github.com/newpoete/sweepers-editor) is the source of truth, and the publisher only turns what the editor publishes into the site. See the [Sweepers Publisher charter](https://github.com/newpoete/sweepers-editor/blob/main/docs/roadmap/20261111-sweepers-publisher-charter.md) and the build epic, [newpoete/sweepers-editor#67](https://github.com/newpoete/sweepers-editor/issues/67).
 
-> **Status:** live at **https://sweeperscalendar.com** since 2026-11-14 (sweepers-editor#109), with real data published by Sweepers Editor to `data/queue/` (sweepers-editor#96). The old staging URL, `newpoete.github.io/sweepers-publisher`, redirects there. The Flask app on App Engine stays up as a fallback until it's deleted (sweepers-editor#110).
+> **Status:** live at **https://sweeperscalendar.com** since 2026-11-14 (sweepers-editor#109), with real data published by Sweepers Editor to `data/queue/` (sweepers-editor#96). The old staging URL, `newpoete.github.io/sweepers-publisher`, redirects there. The Flask app on App Engine was shut down on 2026-11-19 (sweepers-editor#110); its data is archived in the private `sweepers-flask` repo.
 
 ## How it works
 
